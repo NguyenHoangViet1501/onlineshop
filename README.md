@@ -2,7 +2,7 @@
 
 <p>Website bán hàng giúp cửa hàng giới thiệu sản phẩm đến khách hàng với thông tin chi tiết và giá cả chính xác.</p>
 
-<h2>🚀 Chức năng chính</h2>
+<h2>Chức năng chính</h2>
 
 <h3>🔹 Đối với khách hàng:</h3>
 <ul>
@@ -34,8 +34,8 @@
 
 <h2>📌 Cài đặt và chạy dự án</h2>
 <pre>
-git clone https://github.com/your-repository.git
-cd your-repository
+git clone https://github.com/NguyenHoangViet1501/onlineshop.git
+cd onlineshop
 </pre>
 
 <h2>Tác giả</h2>
