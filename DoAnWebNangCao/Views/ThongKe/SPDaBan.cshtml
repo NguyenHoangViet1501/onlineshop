@@ -1,0 +1,187 @@
+﻿<h2>Danh sách sản phẩm đã bán</h2>
+<div>
+    <!-- Select Tháng -->
+    <select id="monthSelect" class="custom-select rounded-0">
+        <option value="1">Tháng 1</option>
+        <option value="2">Tháng 2</option>
+        <option value="3">Tháng 3</option>
+        <option value="4">Tháng 4</option>
+        <option value="5">Tháng 5</option>
+        <option value="6">Tháng 6</option>
+        <option value="7">Tháng 7</option>
+        <option value="8">Tháng 8</option>
+        <option value="9">Tháng 9</option>
+        <option value="10">Tháng 10</option>
+        <option value="11">Tháng 11</option>
+        <option value="12">Tháng 12</option>
+    </select>
+
+    <!-- Select Năm -->
+    <select id="yearSelect" class="custom-select rounded-0">
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2020">2020</option>
+    </select>
+</div>
+
+<!-- Bảng hiển thị số lượng sản phẩm đã bán trong tháng -->
+<table id="salesTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Mã Sản Phẩm</th>
+            <th>Tên Sản Phẩm</th>
+            <th>Số Lượng Bán</th>
+        </tr>
+    </thead>
+    <tbody id="salesList">
+        <!-- Dữ liệu sẽ được thêm bằng AJAX -->
+    </tbody>
+</table>
+@*Phân Trang*@
+<nav>
+    <ul class="pagination">
+        <li id="prevPage" class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li id="currentPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="lastPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="nextPage" class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var pageNumber = 1; // Bắt đầu từ trang 1
+        var pageSize = 10; // Số lượng sản phẩm mỗi trang
+        var tongSoTrang = 1;
+
+        // Hàm tải dữ liệu theo tháng và năm được chọn
+        function loadProductSales() {
+            var month = $('#monthSelect').val();  // Lấy tháng từ select
+            var year = $('#yearSelect').val();   // Lấy năm từ select
+
+            console.log("Fetching data for Month:", month, "Year:", year); // Kiểm tra giá trị của month và year
+
+            $.ajax({
+                url: '/ThongKe/GetProductSalesInMonth', // Đường dẫn API
+                type: 'GET',
+                data: { month: month, year: year, pageNumber: pageNumber, pageSize: pageSize },
+                dataType: 'json',
+                success: function (data) {
+                    console.log("API response data:", data); // Kiểm tra dữ liệu trả về từ API
+
+                    if (data && data.productSales && data.productSales.length > 0) {
+                        var tableBody = $('#salesList');
+                        tableBody.empty(); // Xóa bảng trước khi thêm dữ liệu mới
+
+                        // Duyệt qua dữ liệu và thêm vào bảng
+                        $.each(data.productSales, function (index, product) {
+                            var STT = (pageNumber - 1) * pageSize + (index + 1);
+                            var row = '<tr>' +
+                                '<td>' + STT + '</td>' +
+                                '<td><a href="/SanPham/Details/' + product.ProductID + '">' + product.ProductID + '</a></td>' +
+                                '<td>' + product.ProductName + '</td>' +
+                                '<td>' + product.TotalSold + '</td>' +
+                                '</tr>';
+                            tableBody.append(row);
+                        });
+
+                        // Cập nhật số trang
+                        tongSoTrang = Math.ceil(data.tongSoSanPham / pageSize);
+                        $('#currentPage .page-link').text(pageNumber);
+                        $('#lastPage .page-link').text(tongSoTrang);
+
+                        updatePagination(tongSoTrang);
+                    } else {
+                        $('#salesList').html('<tr><td colspan="4">Không có dữ liệu</td></tr>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi gọi API GetProductSalesInMonth: ", error);
+                    $('#salesList').html('<tr><td colspan="4">Không thể lấy dữ liệu</td></tr>');
+                }
+            });
+        }
+
+        // Hàm cập nhật phân trang
+        function updatePagination(totalPages) {
+            if (pageNumber === 1) {
+                $('#prevPage').addClass('disabled');
+            } else {
+                $('#prevPage').removeClass('disabled');
+            }
+
+            if (pageNumber === totalPages) {
+                $('#nextPage').addClass('disabled');
+            } else {
+                $('#nextPage').removeClass('disabled');
+            }
+        }
+
+        // Xử lý khi nhấn nút "Previous" (trang trước)
+        $('#prevPage').click(function () {
+            if (pageNumber > 1) {
+                pageNumber--;
+                loadProductSales();
+            }
+        });
+
+        // Xử lý khi nhấn nút "Next" (trang sau)
+        $('#nextPage').click(function () {
+            if (pageNumber < tongSoTrang) {
+                pageNumber++;
+                loadProductSales();
+            }
+        });
+
+        // Lắng nghe sự kiện thay đổi của các select
+        $('#monthSelect, #yearSelect').change(function () {
+            var month = $('#monthSelect').val();
+            var year = $('#yearSelect').val();
+
+            // Cập nhật tháng đã chọn
+            var monthName = getMonthName(month); // Hàm để lấy tên tháng theo số
+            $('#monthSelected').text(monthName + " " + year); // Hiển thị tháng đã chọn
+
+            // Gọi lại hàm với tháng và năm được chọn
+            loadProductSales();  // Cập nhật danh sách sản phẩm bán trong tháng
+        });
+
+        // Hàm để lấy tên tháng từ số tháng
+        function getMonthName(month) {
+            var months = [
+                "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+            ];
+            return months[month - 1]; // Sử dụng số tháng để lấy tên
+        }
+
+        // Khởi tạo trang với tháng và năm hiện tại
+        var currentMonth = new Date().getMonth() + 1; // getMonth() trả về tháng 0-11, cộng thêm 1 để ra tháng 1-12
+        var currentYear = new Date().getFullYear();
+
+        // Đặt giá trị tháng và năm hiện tại vào các ô select
+        $('#monthSelect').val(currentMonth);
+        $('#yearSelect').val(currentYear);
+
+        // Cập nhật tháng đã chọn lần đầu tiên
+        var currentMonthName = getMonthName(currentMonth);
+        $('#monthSelected').text(currentMonthName + " " + currentYear);
+
+        // Load dữ liệu lần đầu khi trang được tải
+        loadProductSales();  // Doanh thu của tháng hiện tại
+
+    });
+
+</script>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>

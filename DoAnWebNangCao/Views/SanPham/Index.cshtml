@@ -1,0 +1,230 @@
+﻿
+<h2>Danh Sách Sản Phẩm</h2>
+@Html.TextBox("Search", "", new { placeholder = "Nhập tên sản phẩm" })
+<input type="submit" id="searchBtn" value="Tìm">
+<br />
+
+<br />
+<table id="catalogueTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tên sản phẩm</th>
+            <th style="width: 150px">Tên Danh Mục</th>
+            <th>Giá</th>
+            <th>Mô tả</th>
+            <th>Hãng</th>
+            <th style="width: 100px">Số lượng</th>
+            <th>Ảnh</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="catalogueList">
+        <!-- Nội dung bảng sẽ được thêm bằng AJAX -->
+    </tbody>
+</table>
+
+@*Phân Trang*@
+<nav>
+    <ul class="pagination">
+        <li id="prevPage" class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li id="currentPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="lastPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="nextPage" class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+@section Scripts {
+    <script type="text/javascript">
+    $(document).ready(function () {
+        var pageNumber = 1; // Bắt đầu từ trang 1
+        var pageSize = 6; // Số lượng sản phẩm mỗi trang
+        var tongSoTrang = 1;
+
+        // Hàm tải dữ liệu
+        function loadData() {
+            $.ajax({
+                url: '@Url.Action("GetListSanPham", "SanPham")',
+                type: 'POST',
+                data: { pageNumber: pageNumber, pageSize: pageSize },
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);  // In ra dữ liệu trả về từ server
+
+                    var tableBody = $('#catalogueList');
+                    tableBody.empty(); // Xóa bảng trước khi thêm dữ liệu mới
+
+                    // Kiểm tra nếu listSanPham có dữ liệu hay không
+                    if (data.listSanPham && data.listSanPham.length > 0) {
+                        $.each(data.listSanPham, function (index, value) {
+                            var STT = (index + 1);
+                            var row = '<tr data-id="' + value.ProductID + '">' +
+                                '<td>' + STT + '</td>' +
+                                '<td><a href="/SanPham/Details/' + value.ProductID + '">' + value.Name + '</a></td>' +
+                                '<td>' + value.CatalogueName + '</td>' +
+                                '<td>' + value.Price + '</td>' +
+                                '<td>' + value.Description + '</td>' +
+                                '<td>' + value.BrandName + '</td>' +
+                                '<td>' + value.Quantity + '</td>' +
+                                '<td><img src="' + value.ImagePath + '" alt="' + value.Name + '" width="100" /></td>' +
+                                '<td><a href="/SanPham/Edit/' + value.ProductID + '" class="btn btn-primary">Edit</a> ' +
+                                '<button class="btn btn-danger deleteBtn" id="delBtn" data-id="' + value.ProductID + '">Delete</button>' +
+                                '</td>' +
+                                '</tr>';
+                            tableBody.append(row);
+                        });
+                    } else {
+                        console.log("Không có sản phẩm trong danh mục.");
+                    }
+
+                    // Cập nhật phân trang
+                    tongSoTrang = Math.ceil(data.tongSoDanhMuc / pageSize);
+                    $('#currentPage .page-link').text(pageNumber);
+                    $('#lastPage .page-link').text(tongSoTrang);
+                    updatePagination(tongSoTrang);
+                }
+            });
+        }
+
+        // Gọi hàm tải dữ liệu ngay khi trang được tải
+        loadData();
+
+        // Hàm cập nhật phân trang
+        function updatePagination(totalPages) {
+            if (pageNumber === 1) {
+                $('#prevPage').addClass('disabled');
+            } else {
+                $('#prevPage').removeClass('disabled');
+            }
+
+            if (pageNumber === totalPages) {
+                $('#nextPage').addClass('disabled');
+            } else {
+                $('#nextPage').removeClass('disabled');
+            }
+        }
+
+        // Xử lý khi nhấn nút "Previous" (trang trước)
+        $('#prevPage').click(function () {
+            if (pageNumber > 1) {
+                pageNumber--;
+                loadData();
+            }
+        });
+
+        // Xử lý khi nhấn nút "Next" (trang sau)
+        $('#nextPage').click(function () {
+            if (pageNumber < tongSoTrang) {
+                pageNumber++;
+                loadData();
+            }
+        });
+
+        // Xử lý khi nhấn nút xóa sản phẩm
+        $(document).on('click', '#delBtn', function () {
+            var ProductID = $(this).closest('tr').data('id');
+            if (confirm("Bạn có chắc muốn xóa sản phẩm này không?")) {
+                $.ajax({
+                    url: '@Url.Action("XoaSanPham", "SanPham")',
+                    type: 'POST',
+                    data: { id: ProductID },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr["success"]("Xoá thành công!", "Thông báo");
+                            loadData();
+                        } else {
+                            alert("Đã xảy ra lỗi: " + response.message);
+                        }
+                    },
+                    error: function (errormessage) {
+                        alert("Có lỗi xảy ra: " + errormessage.responseText);
+                    }
+                });
+            }
+        });
+
+        // Xử lý khi nhấn nút tìm kiếm sản phẩm
+        $('#searchBtn').click(function () {
+            event.preventDefault(); // Ngừng hành động mặc định của nút
+            var searchVal = $('#Search').val();
+
+            $.ajax({
+                url: '@Url.Action("SearchProductsByName", "SanPham")',
+                type: 'GET',
+                dataType: 'json',
+                data: { name: searchVal, pageNumber: pageNumber, pageSize: pageSize },
+                success: function (data) {
+                    if (data.listSanPham.length == 0) {
+                        alert("Không có sản phẩm nào.");
+                        loadData(); // Nếu không tìm thấy sản phẩm, tải lại toàn bộ danh sách
+                    } else {
+                        var tableBody = $('#catalogueList');
+                        tableBody.empty(); // Xóa nội dung cũ
+
+                        // Lặp qua danh sách sản phẩm và hiển thị dữ liệu
+                        $.each(data.listSanPham, function (index, value) {
+                            var STT = (index + 1);
+                            var row = '<tr data-id="' + value.ProductID + '">' +
+                                '<td>' + STT + '</td>' +
+                                '<td><a href="/SanPham/Details/' + value.ProductID + '">' + value.Name + '</a></td>' +
+                                '<td>' + value.CatalogueName + '</td>' +
+                                '<td>' + value.Price + '</td>' +
+                                '<td>' + value.Description + '</td>' +
+                                '<td>' + value.BrandName + '</td>' +
+                                '<td>' + value.Quantity + '</td>' +
+                                '<td><img src="' + value.ImagePath + '" alt="' + value.Name + '" width="100" /></td>' +
+                                '<td><a href="/SanPham/Edit/' + value.ProductID + '" class="btn btn-primary">Edit</a> ' +
+                                '<button class="btn btn-danger deleteBtn" id="delBtn" data-id="' + value.ProductID + '">Delete</button>' +
+                                '</td>' +
+                                '</tr>';
+                            tableBody.append(row);
+                        });
+
+                        // Cập nhật phân trang
+                        tongSoTrang = Math.ceil(data.tongSoDanhMuc / pageSize);
+                        $('#currentPage .page-link').text(pageNumber);
+                        $('#lastPage .page-link').text(tongSoTrang);
+                        updatePagination(tongSoTrang);
+                    }
+                },
+                error: function (error) {
+                    console.log("Đã xảy ra lỗi", error);
+                }
+            });
+        });
+
+
+    });
+    </script>
+    q
+}
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+
+    #searchBtn {
+        padding: 8px 16px;
+        background-color: #0069d9; /* Màu nền xanh lá */
+        color: white; /* Màu chữ trắng */
+        border: none;
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #Search {
+        padding: 8px 50px;
+        border: 2px solid #0069d9; /* Viền xanh lá */
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+        text-align: center;
+    }
+</style>

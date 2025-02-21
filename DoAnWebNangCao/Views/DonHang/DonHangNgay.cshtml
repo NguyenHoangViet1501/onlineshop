@@ -1,0 +1,177 @@
+﻿<h2>
+    Danh Sách Đơn Hàng Trong Ngày:
+    <span>
+        @DateTime.Parse(Request.QueryString["date"]).ToString("dd/MM/yyyy")
+    </span>
+</h2>
+<!-- Nút in, ẩn mặc định -->
+<button id="printButton" class="btn btn-primary" style="display: none; margin-bottom: 20px; color: white; background-color: #0069d9; float: right;">In Báo Cáo</button>
+
+
+<!-- Bảng để hiển thị đơn hàng -->
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>OrderID</th>
+            <th>Giờ đặt hàng</th>
+            <th>Tổng Tiền</th>
+            <th>Trạng Thái</th>
+            <th></th>
+
+        </tr>
+    </thead>
+    <tbody id="ordersTableBody">
+        <!-- Các dòng dữ liệu đơn hàng sẽ được hiển thị ở đây -->
+    </tbody>
+</table>
+<div id="totalRevenue" style="color: red; font-weight: bold; margin-top: 10px; font-size: 25px; text-align: right; margin-right: 20px;"></div>
+
+<!-- Thêm phần script để gọi Ajax -->
+<script type="text/javascript">
+  $(document).ready(function () {
+    // Lấy giá trị ngày từ URL
+    var dateParam = '@Request.QueryString["date"]'; // Ngày đã chọn trong URL
+
+    function formatDate(dateString) {
+        var regex = /\/Date\((\d+)\)\//;
+        var match = regex.exec(dateString);
+        if (match && match[1]) {
+            var timestamp = parseInt(match[1]);
+            var date = new Date(timestamp);
+            var day = ("0" + date.getDate()).slice(-2);
+            var month = ("0" + (date.getMonth() + 1)).slice(-2);
+            var year = date.getFullYear();
+            var hours = ("0" + date.getHours()).slice(-2);
+            var minutes = ("0" + date.getMinutes()).slice(-2);
+            var seconds = ("0" + date.getSeconds()).slice(-2);
+
+            return hours + ":" + minutes + ":" + seconds;
+        }
+        return dateString;
+    }
+
+    // Gọi API để lấy dữ liệu đơn hàng
+    $.ajax({
+        url: '/DonHang/GetOrdersInDay', // Địa chỉ API của controller
+        type: 'GET',
+        data: { date: dateParam }, // Truyền ngày vào API
+        dataType: 'json',
+        success: function (data) {
+            // Kiểm tra nếu có dữ liệu và xử lý hiển thị
+            if (data && data.length > 0) {
+                var tableBody = $('#ordersTableBody');
+                tableBody.empty();
+                $('#printButton').show();
+                var TotalPrice = 0;
+                // Duyệt và hiển thị các dòng đơn hàng
+                $.each(data, function (index, order) {
+                    var STT = index + 1;
+                    var row = '<tr>' +
+                        '<td>' + STT + '</td>' +
+                        '<td>' + order.OrderID + '</td>' +
+                        '<td>' + formatDate(order.OrderDate) + '</td>' +
+                        '<td>' + order.TotalPrice.toLocaleString('vi-VN') + '</td>' +
+                        '<td>' + order.Status + '</td>' +
+                        '<td><a href="' + window.location.origin + '/Order/Details/' + order.OrderID + '" class="btn btn-info">Xem</a></td>' +
+                        '</tr>';
+                    tableBody.append(row);
+
+                    // Cộng dồn doanh thu
+                    TotalPrice += order.TotalPrice;
+                });
+
+                // Hiển thị tổng doanh thu
+                $('#totalRevenue').text('Tổng Doanh Thu: ' + TotalPrice.toLocaleString('vi-VN') + ' VND');
+            } else {
+                alert('Không có đơn hàng nào trong ngày này.');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log("Lỗi status:", status);
+            console.log("Lỗi chi tiết:", xhr.responseText);
+            alert('Có lỗi xảy ra khi tải dữ liệu.');
+        }
+    });
+
+    // Xử lý in danh sách đơn hàng
+    $('#printButton').click(function () {
+        var printContent = `
+            <h2>Danh Sách Đơn Hàng Trong Ngày:
+                <span>
+     @DateTime.Parse(Request.QueryString["date"]).ToString("dd/MM/yyyy")
+ </span>
+            </h2>
+            <table style="width: 100%; border-collapse: collapse;" border="1">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>OrderID</th>
+                        <th>Giờ đặt hàng</th>
+                        <th>Tổng Tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${$('#ordersTableBody tr').map(function () {
+                        var cells = $(this).find('td');
+                        return `
+                            <tr>
+                                <td>${$(cells[0]).text()}</td>
+                                <td>${$(cells[1]).text()}</td>
+                                <td>${$(cells[2]).text()}</td>
+                                <td>${$(cells[3]).text()}</td>
+                            </tr>`;
+                    }).get().join('')}
+                </tbody>
+            </table>
+             <div style="text-align: right; font-size: 18px; margin-top: 10px; color: red;">
+     ${$('#totalRevenue').text()}
+ </div>
+        `;
+
+        var printWindow = window.open('', '_blank');
+        printWindow.document.open();
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>In Báo Cáo</title>
+                    <style>
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 20px;
+                        }
+                        table, th, td {
+                            border: 1px solid black;
+                        }
+                        th, td {
+                            padding: 8px;
+                            text-align: center;
+                        }
+                        h2 {
+                            text-align: center;
+                            color: #0069d9;
+                            font-size: 28px;
+                        }
+                    </style>
+                </head>
+                <body onload="window.print()">
+                    ${printContent}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    });
+});
+
+</script>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>

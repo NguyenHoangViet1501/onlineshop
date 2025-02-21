@@ -1,0 +1,379 @@
+﻿<meta charset="UTF-8">
+<h2>Danh sách tài khoản</h2>
+@*<a href="@Url.Action("Create", "TaiKhoan")" class="btn btn-success">Thêm Tài Khoản Mới</a>*@
+<div>
+    @Html.TextBox("Search", "", new { placeholder = "Nhập tên tài khoản" })
+    <input type="submit" id="searchBtn" value="Tìm">
+    <br />
+</div>
+<br>
+<table id="catalogueTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tài khoản</th>
+            <th>Vai trò</th>
+            <th>Tên tài khoản</th>
+            <th>Số điện thoại</th>
+            <th>Địa chỉ</th>
+            <th>Emali</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody id="catalogueList">
+        <!-- Nội dung bảng sẽ được thêm bằng AJAX -->
+    </tbody>
+</table>
+
+@*Phân Trang*@
+<nav>
+    <ul class="pagination">
+        <li id="prevPage" class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li id="currentPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="lastPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="nextPage" class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+<!-- Modal Reset Mật Khẩu -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">Reset Mật Khẩu</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="resetPasswordForm">
+                    <div class="form-group">
+                        <label for="newPassword">Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="newPassword" name="NewPassword" required>
+
+                        <label for="confirmPassword">Xác nhận mật khẩu</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="resetPasswordBtn" data-bs-dismiss="modal">Reset</button>
+            </div>
+        </div>
+    </div>
+</div>
+@*HỘP THOẠI BẬT LÊN KHI ẤN NÚT EDIT*@
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Chỉnh sửa tài khoản</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="form-group">
+                        <input type="hidden" id="editCatalogueID" name="ID" />
+
+                        <label for="editAccount">Tài khoản</label>
+                        <input type="text" class="form-control" id="editAccount" name="Account" required>
+
+                        <label for="editCatalogueRole">Vai trò</label>
+                        <p id="editCatalogueRole" class="form-control-plaintext"></p>
+
+                        <label for="editName">Tên</label>
+                        <input type="text" class="form-control" id="editName" name="Name" required>
+
+                        <label for="editPhone">Số điện thoại</label>
+                        <input type="text" class="form-control" id="editPhone" name="Phone" required>
+
+                        <label for="editAddress">Địa chỉ</label>
+                        <input type="text" class="form-control" id="editAddress" name="Address" required>
+
+                        <label for="editEmail">Email</label>
+                        <input type="email" class="form-control" id="editEmail" name="Email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveEditCatalogueBtn" data-bs-dismiss="modal">Hoàn Thành</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var pageNumber = 1; // Bắt đầu từ trang 1
+        var pageSize = 8; // Số lượng sản phẩm mỗi trang
+        var tongSoTrang = 1;
+
+        function loadData() {
+            $.ajax({
+                url: '@Url.Action("GetListUsers", "TaiKhoan")',
+                type: 'POST',
+                data: { pageNumber: pageNumber, pageSize: pageSize },
+                dataType: 'json',
+                success: function (data) {
+                    var tableBody = $('#catalogueList');
+                    tableBody.empty(); // Xóa bảng trước khi thêm dữ liệu mới
+
+                    // Lặp qua danh sách sản phẩm và hiển thị dữ liệu
+                    $.each(data.listUsers, function (index, value) {
+                        var row = '<tr data-id="' + value.UsersID + '">' +
+                            '<td>' + ((pageNumber - 1) * pageSize + index + 1) + '</td>' +
+                            '<td>' + value.Account + '</td>' +
+                            //'<td>' + value.Password + '</td>' +
+                            '<td>' + value.RoleName + '</td>' +
+                            '<td>' + value.Name + '</td>' +
+                            '<td>' + value.PhoneNumber + '</td>' +
+                            '<td>' + value.Address + '</td>' +
+                            '<td>' + value.Email + '</td>' +
+                            '<td>'+
+                            '<button class="btn btn-primary editBtn" data-id="' + value.UserID + '" data-bs-toggle="modal" data-bs-target="#editUserModal">Edit</button> ' +
+                            '<button class="btn btn-danger deleteBtn" data-id="' + value.UserID + '">Delete</button>' +
+                            '<button class="btn btn-warning resetBtn" data-id="' + value.UserID + '" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" style= "margin-left:3px; "">Reset Password</button>' +
+                            '</td>' +
+                            '</tr>';
+                        tableBody.append(row);
+                    });
+
+                    // Cập nhật phân trang
+                    tongSoTrang = Math.ceil(data.tongSoDanhMuc / pageSize);
+                    $('#currentPage .page-link').text(pageNumber);
+                    $('#lastPage .page-link').text(tongSoTrang);
+                    updatePagination(tongSoTrang);
+                },
+                error: function (errormessage) {
+                    alert('Có lỗi xảy ra trong quá trình lấy dữ liệu sản phẩm!');
+                }
+            });
+        }
+
+        loadData();
+           // Khi nhấn nút Reset Password
+    $('#catalogueList').on('click', '.resetBtn', function () {
+        var userID = $(this).data('id');
+        $('#resetPasswordModal').data('userId', userID); // Lưu lại UserID trong modal để sử dụng khi gửi yêu cầu
+    });
+
+// Khi nhấn nút Reset mật khẩu trong modal
+    $('#resetPasswordBtn').click(function () {
+        var userID = $('#resetPasswordModal').data('userId');
+        var newPassword = $('#newPassword').val();
+        var confirmPassword = $('#confirmPassword').val();
+
+    // Kiểm tra mật khẩu và xác nhận mật khẩu có khớp không
+       if (newPassword !== confirmPassword) {
+           toastr["error"]("Mật khẩu xác nhận không khớp!", "Thông báo");
+           return;
+       }
+
+    // Gửi yêu cầu AJAX để reset mật khẩu
+        $.ajax({
+            url: '@Url.Action("ResetPassword", "TaiKhoan")',
+            type: 'POST',
+            data: {
+                ID: userID, // Lưu ý: Đây phải khớp với tham số trong Controller
+                newPassword: newPassword
+            },
+            success: function (response) {
+                if (response.success) {
+                    toastr["success"]("Mật khẩu đã được reset thành công!", "Thông báo");
+                    $('#resetPasswordModal').modal('hide'); // Đóng modal
+                    loadData(); // Cập nhật danh sách
+                } else {
+                toastr["error"]("Reset mật khẩu thất bại: " + response.message, "Thông báo");
+                }
+            },
+            error: function () {
+                toastr["error"]("Có lỗi xảy ra khi reset mật khẩu!", "Thông báo");
+            }
+        });
+    });
+        function updatePagination(totalPages) {
+            if (pageNumber === 1) {
+                $('#prevPage').addClass('disabled');
+            } else {
+                $('#prevPage').removeClass('disabled');
+            }
+
+            if (pageNumber === totalPages) {
+                $('#nextPage').addClass('disabled');
+            } else {
+                $('#nextPage').removeClass('disabled');
+            }
+        }
+
+        $('#prevPage').click(function () {
+            if (pageNumber > 1) {
+                pageNumber--;
+                loadData();
+            }
+        });
+
+        $('#nextPage').click(function () {
+            if (pageNumber < tongSoTrang) {
+                pageNumber++;
+                loadData();
+            }
+        });
+
+        // Xử lý khi nhấn nút sửa
+        $(document).on('click', '.editBtn', function () {
+        var userId = $(this).data('id');
+            $.ajax({
+                url: '@Url.Action("GetUserById", "TaiKhoan")',
+                type: 'GET',
+                data: { id: userId },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        $('#editCatalogueID').val(data.user.UserID);
+                        $('#editAccount').val(data.user.Account);
+                        $('#editPassword').val(data.user.Password);
+                        var roleName = data.user.RoleID ? "Admin" : "Customer";
+                        $('#editCatalogueRole').text(roleName);
+                        $('#editName').val(data.user.Name);
+                        $('#editPhone').val(data.user.PhoneNumber);
+                        $('#editAddress').val(data.user.Address);
+                        $('#editEmail').val(data.user.Email);
+                        $('#editUserModal').modal('show');
+                    } else {
+                        alert(data.message);
+                     }
+                    },
+                error: function () {
+                    alert('Có lỗi xảy ra khi lấy thông tin tài khoản!');
+                     }
+                    });
+                });
+
+        $('#saveEditCatalogueBtn').click(function () {
+            var userData = {
+                ID: $('#editCatalogueID').val(),
+                Account: $('#editAccount').val(),
+                Password: $('#editPassword').val(),
+                Role: $('#editRole').val(),
+                Name: $('#editName').val(),
+                Phone: $('#editPhone').val(),
+                Address: $('#editAddress').val(),
+                Email: $('#editEmail').val()
+                };
+
+            $.ajax({
+                url: '@Url.Action("SuaTaiKhoan", "TaiKhoan")',
+                type: 'POST',
+                data: userData,
+                success: function (data) {
+                    if (data.success) {
+                        toastr["success"]("Sửa thành công!", "Thông báo")
+                        //$('#editUserModal').modal('hide');
+                        loadData(); // Refresh the table to show updated data
+                    } else {
+                        toastr["error"]("Sửa thất bại: "+data.message, "Thông báo")
+                    }
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra khi sửa tài khoản!');
+                        }
+                    });
+                });
+
+        // Xử lý khi nhấn nút xóa
+        $(document).on('click', '.deleteBtn', function () {
+            var usersId = $(this).data('id');
+                if (confirm('Bạn có chắc chắn muốn xóa tài khoản này không?')) {
+                    $.ajax({
+                    url: '@Url.Action("XoaTaiKhoan", "TaiKhoan")',
+                    type: 'POST',
+                    data: { id: usersId },
+                    success: function (response) {
+                        toastr["success"](response.message, "Thông báo")
+                        setTimeout(function () {
+                            location.replace('@Url.Action("Index","TaiKhoan")');
+                        }, 2000);
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi xóa sản phẩm!');
+                    }
+                });
+            }
+        });
+        // Tìm kiếm
+        $('#searchBtn').click(function () {
+
+            var searchVal = $('#Search').val();
+            $.ajax({
+                url: '@Url.Action("SearchUsersByName", "TaiKhoan")',
+                type: 'GET',
+                dataType: 'json',
+                data: { name: searchVal, pageNumber: pageNumber, pageSize: pageSize },
+                success: function (data) {
+                    if (data.listUsers.length == 0) {
+                        alert("Không có bản ghi");
+                        loadData();
+                    } else {
+                        var tableBody = $('#catalogueList');
+                        tableBody.empty();
+                        $.each(data.listUsers, function (index, value) {
+                            var row = '<tr data-id="' + value.UsersID + '">' +
+                                '<td>' + ((pageNumber - 1) * pageSize + index + 1) + '</td>' +
+                                '<td>' + value.Account + '</td>' +
+                                //'<td>' + value.Password + '</td>' +
+                                '<td>' + value.RoleName + '</td>' +
+                                '<td>' + value.Name + '</td>' +
+                                '<td>' + value.PhoneNumber + '</td>' +
+                                '<td>' + value.Address + '</td>' +
+                                '<td>' + value.Email + '</td>' +
+                                '<td>' +
+                                '<button class="btn btn-primary editBtn" data-id="' + value.UserID + '" data-bs-toggle="modal" data-bs-target="#editUserModal">Edit</button> ' +
+                                '<button class="btn btn-danger deleteBtn" data-id="' + value.UserID + '">Delete</button>' +
+                                '<button class="btn btn-warning resetBtn" data-id="' + value.UserID + '" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" style= "margin-left:3px; "">Reset Password</button>' +
+                                '</td>' +
+                                '</tr>';
+                            tableBody.append(row);
+                        });
+                    }
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra trong quá trình tìm kiếm!');
+                }
+            });
+        });
+});
+</script>
+
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+    #searchBtn {
+        padding: 8px 16px;
+        background-color: #0069d9; /* Màu nền xanh lá */
+        color: white; /* Màu chữ trắng */
+        border: none;
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #Search {
+        padding: 8px 50px;
+        border: 2px solid #0069d9; /* Viền xanh lá */
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+        text-align: center;
+    }
+</style>
+

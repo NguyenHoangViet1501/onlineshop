@@ -1,0 +1,204 @@
+﻿
+<h2>Danh Sách Nhãn Hàng</h2>
+@Html.TextBox("Search", "", new { placeholder = "Nhập tên nhãn hàng" })
+<input type="submit" id="searchBtn" value="Tìm">
+<br />
+
+<br />
+<table id="catalogueTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tên nhãn hàng</th>
+            <th>Tên Danh Mục</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="catalogueList">
+        <!-- Nội dung bảng sẽ được thêm bằng AJAX -->
+    </tbody>
+</table>
+
+@*Phân Trang*@
+<nav>
+    <ul class="pagination">
+        <li id="prevPage" class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li id="currentPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="lastPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="nextPage" class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+@section Scripts {
+    <script type="text/javascript">
+    $(document).ready(function () {
+    var pageNumber = 1; // Bắt đầu từ trang 1
+    var pageSize = 8; // Số lượng sản phẩm mỗi trang
+    var tongSoTrang = 1;
+
+    function loadData() {
+        $.ajax({
+            url: '@Url.Action("GetListHang", "Hang")',
+            type: 'POST',
+            data: { pageNumber: pageNumber, pageSize: pageSize },
+            dataType: 'json',
+            success: function (data) {
+                var tableBody = $('#catalogueList');
+                tableBody.empty(); // Xóa bảng trước khi thêm dữ liệu mới
+
+                // Lặp qua danh sách sản phẩm và hiển thị dữ liệu
+                $.each(data.listBrand, function (index, value) {
+                    var STT =  (index + 1);
+                    var row = '<tr data-id="' + value.BrandID + '">' +
+                        '<td>' + STT + '</td>' +
+                        '<td>' + value.BrandName + '</td>' +
+                        '<td>' + value.CatalogueName + '</td>' +
+                        '<td><a href="/Hang/Edit/' + value.BrandID + '" class="btn btn-primary">Edit</a> ' +
+                        '<button class="btn btn-danger deleteBtn" id="delBtn" data-id="' + value.BrandID + '">Delete</button>' +
+                        '</td>' +
+                        '</tr>';
+                    tableBody.append(row);
+                });
+
+                // Cập nhật phân trang
+                tongSoTrang = Math.ceil(data.tongSoDanhMuc / pageSize);
+                $('#currentPage .page-link').text(pageNumber);
+                $('#lastPage .page-link').text(tongSoTrang);
+                updatePagination(tongSoTrang);
+            },
+            error: function (errormessage) {
+                alert('Có lỗi xảy ra trong quá trình lấy dữ liệu sản phẩm!');
+            }
+        });
+    }
+
+    loadData();
+
+    function updatePagination(totalPages) {
+        if (pageNumber === 1) {
+            $('#prevPage').addClass('disabled');
+        } else {
+            $('#prevPage').removeClass('disabled');
+        }
+
+        if (pageNumber === totalPages) {
+            $('#nextPage').addClass('disabled');
+        } else {
+            $('#nextPage').removeClass('disabled');
+        }
+    }
+
+    $('#prevPage').click(function () {
+        if (pageNumber > 1) {
+            pageNumber--;
+            loadData();
+        }
+    });
+
+    $('#nextPage').click(function () {
+        if (pageNumber < tongSoTrang) {
+            pageNumber++;
+            loadData();
+        }
+    });
+
+    $(document).on('click', '#delBtn', function () {
+        var ProductID = $(this).closest('tr').data('id');
+        if (confirm("Bạn có chắc muốn xóa sản phẩm này không?")) {
+            $.ajax({
+                url: '@Url.Action("XoaHang", "Hang")',
+                type: 'POST',
+                data: { id: ProductID },
+                success: function (response) {
+                    if (response.success) {
+                        toastr["success"]("Xoá thành công!", "Thông báo")
+                        loadData();
+                    } else {
+                        alert("Đã xảy ra lỗi: " + response.message);
+                    }
+                },
+                error: function (errormessage) {
+                    alert("Có lỗi xảy ra: " + errormessage.responseText);
+                }
+            });
+        }
+    });
+
+    // Xử lý khi nhấn nút search
+    $('#searchBtn').click(function () {
+        var searchVal = $('#Search').val();
+
+        $.ajax({
+            url: '@Url.Action("SearchBrandsByName","Hang")',
+            type: 'GET',
+            dataType: 'json',
+            data: { name: searchVal, pageNumber: pageNumber, pageSize: pageSize },
+            success: function (data) {
+                if (data.listSanPham.length == 0) {
+                    alert("Không có sản phẩm nào.");
+                    loadData(); // Nếu không tìm thấy sản phẩm, tải lại toàn bộ danh sách
+                } else {
+                    var tableBody = $('#catalogueList');
+                    tableBody.empty(); // Xóa nội dung cũ
+
+                    // Lặp qua danh sách sản phẩm và hiển thị dữ liệu
+                    $.each(data.listSanPham, function (index, value) {
+                        var STT =  (index + 1);
+                        var row = '<tr data-id="' + value.BrandID + '">' +
+                            '<td>' + STT + '</td>' +
+                            '<td>' + value.BrandName + '</td>' +
+                            '<td>' + value.CatalogueName + '</td>' +
+                            '<td><a href="/Hang/Edit/' + value.BrandID + '" class="btn btn-primary">Edit</a> ' +
+                            '<button class="btn btn-danger deleteBtn" id="delBtn" data-id="' + value.BrandID + '">Delete</button>' +
+                            '</td>' +
+                            '</tr>';
+                        tableBody.append(row);
+
+                    });
+
+                    // Cập nhật phân trang
+                    tongSoTrang = Math.ceil(data.tongSoDanhMuc / pageSize);
+                    $('#currentPage .page-link').text(pageNumber);
+                    $('#lastPage .page-link').text(tongSoTrang);
+                    updatePagination(tongSoTrang);
+                }
+            },
+            error: function (error) {
+                console.log("Đã xảy ra lỗi", error);
+            }
+        });
+    });
+});
+
+    </script>
+}
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+
+    #searchBtn {
+        padding: 8px 16px;
+        background-color: #0069d9; /* Màu nền xanh lá */
+        color: white; /* Màu chữ trắng */
+        border: none;
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #Search {
+        padding: 8px 50px;
+        border: 2px solid #0069d9; /* Viền xanh lá */
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+        text-align: center;
+    }
+</style>

@@ -1,0 +1,81 @@
+﻿@model DoAnWebNangCao.Models.User
+
+<div class="container mt-4">
+    <h2>Thông tin tài khoản</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Tài khoản:</strong> @Model.Account</p>
+            <p><strong>Tên:</strong> @Model.Name</p>
+            <p><strong>Email:</strong> @Model.Email</p>
+            <p><strong>Số điện thoại:</strong> @Model.PhoneNumber</p>
+            <p><strong>Địa chỉ:</strong> @Model.Address</p>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#changePasswordModal">Đổi mật khẩu</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Đổi mật khẩu -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Đổi mật khẩu</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#changePasswordForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var formData = {
+                currentPassword: $('#currentPassword').val(),
+                newPassword: $('#newPassword').val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("DoiMatKhau", "TaiKhoan")',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#changePasswordModal').modal('hide');
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra khi đổi mật khẩu.');
+                }
+            });
+        });
+    });
+</script>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>

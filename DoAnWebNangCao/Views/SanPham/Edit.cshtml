@@ -1,0 +1,191 @@
+﻿
+@{
+   
+    string id = Request.QueryString["id"];
+
+}
+ <h2>Sửa sản phẩm</h2>
+<style>
+    input[type=text], select {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+    input[type=submit] {
+        width: 100%;
+        background-color: #0069d9;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        input[type=submit]:hover {
+            background-color: #45a049;
+        }
+
+    .form-group {
+        background-color: #f2f2f2;
+        padding: 20px;
+    }
+</style>
+<form id="editForm" enctype="multipart/form-data" method="post">
+    <div class="card-body">
+        <div class="form-group">
+            <label for="MaSanPham">Mã sản phẩm:</label>
+            <input type="text" class="form-control" id="MaSanPham" name="MaSanPham" value="@Model.ProductID
+                   " placeholder="Điền tên sản phẩm" readonly>
+        </div>
+        <div class="form-group">
+            <label for="TenSanPham">Tên sản phẩm:</label>
+            <input type="text" class="form-control" id="TenSanPham" name="TenSanPham" value="@Model.Name" placeholder="Điền tên sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label>Danh Mục:</label>
+            <select class="custom-select rounded-0" id="DanhMuc" name="DanhMuc">
+                <!-- Các danh mục sẽ được load từ AJAX -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="Gia">Giá:</label>
+            <input type="text" class="form-control" id="Gia" name="Gia" value="@Model.Price" placeholder="Điền giá sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label for="MoTa">Mô tả:</label>
+            <input type="text" class="form-control" id="MoTa" name="MoTa" value="@Model.Description" placeholder="Điền mô tả sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label for="Branch">Hãng:</label>
+            <input type="text" class="form-control" id="Branch" name="Branch" value="@Model.BrandID" placeholder="Điền giá sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label for="SoLuong">Số lượng:</label>
+            <input type="text" class="form-control" id="SoLuong" name="SoLuong" value="@Model.Quantity" placeholder="Điền số lượng sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label for="Color">Màu sắc:</label>
+            <input type="text" class="form-control" id="Color" name="Color" value="@Model.color" placeholder="Điền màu sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label for="Size">Size:</label>
+            <input type="text" class="form-control" id="Size" name="Size" value="@Model.size" placeholder="Điền size sản phẩm">
+        </div>
+
+        <div class="form-group">
+            <label for="HinhAnh">Hình ảnh sản phẩm:</label>
+            <input type="file" class="form-control" id="ImageFile" name="ImageFile" accept="image/*">
+            @if (!string.IsNullOrEmpty(Model.Image_path))
+            {
+                <img id="previewImage" src="@Model.Image_path" alt="Image Preview" style="max-width: 200px; margin-top: 10px; display: block;">
+            }
+            else
+            {
+                <img id="previewImage" src="#" alt="Image Preview" style="max-width: 200px; margin-top: 10px; display: none;">
+            }
+        </div>
+    </div>
+    <!-- /.card-body -->
+
+    <div class="card-footer">
+        <input type="submit" value="Cập nhật" />
+    </div>
+</form>
+
+<script type="text/javascript">
+function LoadDataDanhMucCha() {
+    $.ajax({
+        url: '@Url.Action("GetListDanhMucForSP", "DanhMuc")', // Đảm bảo URL này đúng
+        type: 'POST',  // Nếu chỉ lấy dữ liệu, có thể sử dụng 'GET' thay vì 'POST'
+        dataType: 'json',
+        success: function (response) {
+            // Kiểm tra dữ liệu trả về từ server
+            if (response && response.data) {
+                let danhSachDM = response.data;
+                let select = $("#DanhMuc"); // Xóa tất cả các mục cũ trong dropdown
+                $.each(danhSachDM, function (index, danhMuc) {
+                    let selected = (danhMuc.CatalogueID == '@Model.CatalogueID') ? 'selected' : '';
+                    select.append("<option value='" + danhMuc.CatalogueID + "' " + selected + ">" + danhMuc.CatalogueName + "</option>");
+                });
+            } else {
+                alert("Không có danh mục nào được tải.");
+            }
+        },
+        error: function () {
+            alert('Error loading categories.');
+        }
+    });
+}
+
+function ImagePreview() {
+    $('#ImageFile').change(function () {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#previewImage').attr('src', e.target.result);
+                $('#previewImage').show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+$(document).ready(function () {
+    LoadDataDanhMucCha();
+    ImagePreview();
+
+    // Xử lý khi submit form
+    $('#editForm').submit(function (event) {
+        event.preventDefault();
+        var form = $('#editForm');
+        var formData = new FormData(form[0]);
+
+        var danhMucId = $("#DanhMuc").val();
+        formData.append("IdDanhMuc", danhMucId);
+
+        $.ajax({
+            url: '@Url.Action("PostEdit", "SanPham")',  // Đảm bảo URL đúng cho hành động sửa
+            type: 'POST',
+            dataType: 'json',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success == true) {
+                    toastr["success"]("Cập nhật thành công!", "Thông báo")
+                    //location.replace('@Url.Action("Index","SanPham")');
+                    setTimeout(function () {
+                        location.replace('@Url.Action("Index","SanPham")');
+                    }, 2000);
+                } else {
+                    toastr["error"]("Cập nhật thất bại!" + response.message, "Thông báo")
+                }
+            },
+            error: function () {
+                alert('Error saving product data.');
+            }
+        });
+    });
+});
+</script>

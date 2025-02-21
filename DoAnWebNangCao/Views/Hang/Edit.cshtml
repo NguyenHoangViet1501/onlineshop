@@ -1,0 +1,156 @@
+﻿@model DoAnWebNangCao.Models.ProductBrand
+@{
+    
+    string id = Request.QueryString["id"];
+
+}
+<h2>Sửa hãng</h2>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+    input[type=text], select {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    input[type=submit] {
+        width: 100%; 
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .form-group-short {
+        display: flex;
+        /*justify-content: s;*/ /* Căn chỉnh các phần tử đều */
+        gap: 40px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    #editForm{
+        margin-left:250px;
+    }
+
+/*        input[type=submit]:hover {
+            background-color: #45a049;
+        }
+
+    .form-group {
+        background-color: #f2f2f2;
+        padding: 20px;
+    }*/
+</style>
+<form id="editForm" enctype="multipart/form-data" method="post">
+    <div class="card-body">
+        <div class="form-group">
+            <label for="MaNhanHang">Mã nhãn hàng:</label>
+            <input type="text" class="form-control" id="MaNhanHang" name="MaNhanHang" value="@Model.BrandID" readonly>
+        </div>
+        <div class="form-group-short">
+            <div class="form-group">
+                <label>Danh Mục:</label>
+                <select class="custom-select rounded-0" id="DanhMuc" name="DanhMuc">
+                    <!-- Các danh mục sẽ được load từ AJAX -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="TenNhanHang">Tên nhãn hàng:</label>
+                <input type="text" class="form-control" id="TenNhanHang" name="TenNhanHang" value="@Model.BrandName">
+            </div>
+        </div>
+        <!-- /.card-body -->
+        <div >
+            <input type="submit" style="background-color: #0069d9; margin-left:100px" value="Cập nhật" />
+        </div>
+        </div>
+</form>
+
+<script type="text/javascript">
+function LoadDataDanhMucCha() {
+    $.ajax({
+        url: '@Url.Action("GetListDanhMucForSP", "DanhMuc")', // Đảm bảo URL này đúng
+        type: 'POST',  // Nếu chỉ lấy dữ liệu, có thể sử dụng 'GET' thay vì 'POST'
+        dataType: 'json',
+        success: function (response) {
+            // Kiểm tra dữ liệu trả về từ server
+            if (response && response.data) {
+                let danhSachDM = response.data;
+                let select = $("#DanhMuc"); // Xóa tất cả các mục cũ trong dropdown
+                $.each(danhSachDM, function (index, danhMuc) {
+                    let selected = (danhMuc.CatalogueID == '@Model.CatalogueID') ? 'selected' : '';
+                    select.append("<option value='" + danhMuc.CatalogueID + "' " + selected + ">" + danhMuc.CatalogueName + "</option>");
+                });
+            } else {
+                alert("Không có danh mục nào được tải.");
+            }
+        },
+        error: function () {
+            alert('Error loading categories.');
+        }
+    });
+}
+
+function ImagePreview() {
+    $('#ImageFile').change(function () {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#previewImage').attr('src', e.target.result);
+                $('#previewImage').show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+$(document).ready(function () {
+    LoadDataDanhMucCha();
+    ImagePreview();
+
+    // Xử lý khi submit form
+    $('#editForm').submit(function (event) {
+        event.preventDefault();
+        var form = $('#editForm');
+        var formData = new FormData(form[0]);
+
+        var danhMucId = $("#DanhMuc").val();
+        formData.append("IdDanhMuc", danhMucId);
+
+        $.ajax({
+            url: '@Url.Action("PostEdit", "Hang")',  // Đảm bảo URL đúng cho hành động sửa
+            type: 'POST',
+            dataType: 'json',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success == true) {
+                    toastr["success"]("Cập nhật thành công!", "Thông báo")
+                    setTimeout(function () {
+                        location.replace('@Url.Action("Index","Hang")');
+                    }, 2000);
+                } else {
+                    toastr["error"]("Cập nhật thất bại!" + response.message, "Thông báo")
+                }
+            },
+            error: function () {
+                alert('Error saving product data.');
+            }
+        });
+    });
+});
+</script>

@@ -1,0 +1,184 @@
+﻿
+@model DoAnWebNangCao.Models.ProductDetailsViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutKH.cshtml";  // Chỉ định layout cho Khách hàng
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Product Details | E-Shopper</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/prettyPhoto.css" rel="stylesheet">
+    <link href="css/price-range.css" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <link href="css/responsive.css" rel="stylesheet">
+
+    <!-- CSS thêm vào cho phần bottomArea -->
+    <style>
+        #bottomArea {
+            background-color: transparent; /* Đảm bảo không có nền đen */
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head><!--/head-->
+
+<body>
+    <section>
+        <div class="container">
+            <div class="row" id="productDetails">
+                <div class="col-sm-12 padding-right">
+                    <div class="product-details" id="productDetails">
+                        <!--product-details-->
+                        <div class="col-sm-5">
+                            <div class="view-product">
+                                <img src="@Model.Product.Image_path" alt="" />
+                            </div>
+                        </div>
+                        <div class="col-sm-7">
+                            <div class="product-information">
+                                <!--/product-information-->
+                                <img src="images/product-details/new.jpg" class="newarrival" alt="" id="img" />
+                                <h2>@Model.Product.Name</h2>
+                                <img src="images/product-details/rating.png" alt="" />
+                                <span>
+                                    <span>$ @Model.Product.Price</span>
+                                    <label>Quantity:</label>
+                                    <input type="number" value="1" id="quantityInput" />
+                                    <a href="#" class="btn btn-default add-to-cart" style="margin-bottom:7px" data-id="${product.id}">
+                                        <i class="fa fa-shopping-cart"></i> Add to cart
+                                    </a>
+                                </span>
+                                <p><b>Availability:</b> @Model.Product.Quantity</p>
+                                <p><b>Brand:</b>@Model.ProductBrand.BrandName  </p>
+                            </div><!--/product-information-->
+                        </div>
+                    </div><!--/product-details-->
+
+                    <div class="category-tab shop-details-tab">
+                        <!--category-tab-->
+                        <div class="col-sm-12">
+                            <ul class="nav nav-tabs">
+                                <li><a href="#details" data-toggle="tab" id="detailBtn">Details</a></li>
+                                <li><a href="#tag" data-toggle="tab" id="tagBtn">Tag</a></li>
+                                <li><a href="#reviews" data-toggle="tab" id="reviewBtn">Reviews</a></li>
+                            </ul>
+                        </div>
+                        <div id="bottomArea">
+                            <!-- Nội dung sẽ được thay đổi tại đây -->
+                        </div>
+                    </div><!--/category-tab-->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @section Scripts
+    {
+        <script type="text/javascript">
+    $(document).ready(function () {
+        // Khai báo các giá trị từ model và gán vào biến JavaScript
+        var productName = '@Model.Product.Name';
+        var productPrice = '@Model.Product.Price';
+        var productQuantity = '@Model.Product.Quantity';
+        var productDescription = '@Model.Product.Description';
+        var productBrand = '@Model.ProductBrand.BrandName';
+        var sl = $('#quantityInput').val();
+        // Hàm xóa và thay đổi nội dung trong #bottomArea
+        function clearAndLoadContent(content) {
+            $('#bottomArea').fadeOut(300, function () {
+                $(this).html(content).fadeIn(300);
+            });
+        }
+
+        // Xử lý khi nhấn vào tab "Details"
+        $('#detailBtn').click(function () {
+            // Xóa nội dung cũ và tải nội dung mới (nội dung chi tiết)
+            var detailsContent = `
+                <h3>Product Details</h3>
+                <p>Here are the detailed information about the product:</p>
+                <b>Name:</b> ` + productName + ` <br>
+                <b>Price:</b> $ ` + productPrice + ` <br>
+                <b>Quantity:</b> ` + productQuantity + ` <br>
+                <b>Brand:</b> ` + productBrand + ` <br>
+                <b>Description:</b> ` + productDescription + `
+            `;
+            clearAndLoadContent(detailsContent);
+        });
+
+        // Xử lý khi nhấn vào tab "Tag"
+        $('#tagBtn').click(function () {
+            // Xóa nội dung cũ và tải nội dung mới (nội dung tag)
+            var tagContent = `
+                <h3>Product Tags</h3>
+                <p>This product has the following tags: <b>electronics, gadget, new, top-seller</b></p>
+            `;
+            clearAndLoadContent(tagContent);
+        });
+
+        // Xử lý khi nhấn vào tab "Reviews"
+        $('#reviewBtn').click(function () {
+            // Xóa nội dung cũ và tải nội dung mới (nội dung reviews)
+            var reviewContent = `
+                <h3>Customer Reviews</h3>
+                <p>Reviews from customers:</p>
+                <div class="review">
+                    <p><b>John Doe:</b> This product is great! Highly recommend it!</p>
+                    <p><b>Jane Doe:</b> I like the quality, but it could be cheaper.</p>
+                </div>
+            `;
+            clearAndLoadContent(reviewContent);
+        });
+        $(document).on('click', '.add-to-cart', function (e) {
+            e.preventDefault();
+            e.preventDefault();
+
+            // Lấy productId từ URL
+            var productId = window.location.pathname.split('/').pop();
+
+            // Lấy giá trị số lượng từ input
+            var quantity = $('#quantityInput').val();
+
+            // Kiểm tra xem số lượng có hợp lệ không (ví dụ: >= 1)
+            if (quantity < 1) {
+                alert('Số lượng phải lớn hơn hoặc bằng 1.');
+                return;
+            }
+            else if (quantity > productQuantity) {
+                alert("Không thể đặt hàng vượt quá số lượng tồn kho");
+                return;
+            }
+            console.log(`Sản phẩm với ID: ${productId} được thêm vào giỏ hàng`);
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Cart")',
+                type: 'POST',
+                data: { id: productId, soluong : quantity },
+                success: function () {
+                    alert('Đã thêm sản phẩm vào giỏ hàng.');
+                },
+                error: function () {
+                    alert('Không thể thêm sản phẩm vào giỏ hàng.');
+                }
+            });
+        });
+    });
+        </script>
+
+
+
+        <script src="js/jquery.js"></script>
+        <script src="js/price-range.js"></script>
+        <script src="js/jquery.scrollUp.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/jquery.prettyPhoto.js"></script>
+        <script src="js/main.js"></script>
+    }
+</body>
+</html>

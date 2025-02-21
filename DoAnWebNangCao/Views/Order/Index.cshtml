@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đơn Hàng</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Quản Lý Đơn Hàng</h2>
+
+        <!-- Bộ lọc -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <input type="text" id="filterCustomerName" class="form-control" placeholder="Tìm theo tên khách hàng">
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="filterStartDate" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="filterEndDate" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <select id="filterStatus" class="form-control">
+                    <option value="">-- Trạng thái --</option>
+                    <option value="Đang xử lý">Đang xử lý</option>
+                    <option value="Đã xử lý">Đã xử lý</option>
+                    <option value="Đã huỷ">Đã huỷ</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <button id="applyFilters" class="btn btn-primary btn-block">Lọc</button>
+            </div>
+            <div class="col-md-2">
+                <button id="resetFilters" class="btn btn-secondary btn-block">Reset</button>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách đơn hàng -->
+        <table id="OrderList" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>OrderID</th>
+                    <th>UserName</th>
+                    <th>OrderDate</th>
+                    <th>TotalPrice</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dữ liệu sẽ được tải động -->
+            </tbody>
+        </table>
+
+        <!-- Modal chỉnh sửa trạng thái -->
+        <div id="statusModal" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Chỉnh sửa trạng thái</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="statusForm">
+                            <input type="hidden" id="orderId">
+                            <div class="form-group">
+                                <label for="status">Trạng thái</label>
+                                <select id="status" class="form-control">
+                                    <option value="Đang xử lý">Đang xử lý</option>
+                                    <option value="Đã xử lý">Đã xử lý</option>
+                                    <option value="Đã huỷ">Đã huỷ</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="saveStatusBtn">Lưu</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Hàm tải danh sách đơn hàng với bộ lọc
+            function loadOrders() {
+                const customerName = $('#filterCustomerName').val();
+                const startDate = $('#filterStartDate').val();
+                const endDate = $('#filterEndDate').val();
+                const status = $('#filterStatus').val();
+
+                $.ajax({
+                    url: '/Order/GetOrders',
+                    type: 'POST',
+                    data: { customerName, startDate, endDate, status },
+                    success: function (orders) {
+                        renderOrders(orders);
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi tải danh sách đơn hàng.');
+                    }
+                });
+            }
+
+            // Hàm hiển thị danh sách đơn hàng
+            function renderOrders(orders) {
+                const tbody = $('#OrderList tbody');
+                tbody.empty();
+                orders.forEach(order => {
+                    const row = `
+                                <tr data-order-id="${order.OrderID}">
+                                    <td><a href="/Order/Details/${order.OrderID}">${order.OrderID}</a></td>
+                                    <td>${order.UserName}</td>
+                                    <td>${new Date(order.OrderDate).toLocaleDateString('vi-VN')}</td>
+                                    <td>${order.TotalPrice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
+                                    <td>${order.Status}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm edit-status">Sửa Trạng Thái</button>
+                                    </td>
+                                </tr>`;
+                    tbody.append(row);
+                });
+
+                $('.edit-status').click(function () {
+                    const orderId = $(this).closest('tr').data('order-id');
+                    $('#orderId').val(orderId);
+                    $('#statusModal').modal('show');
+                });
+            }
+
+            // Sự kiện nút Lọc
+            $('#applyFilters').click(function () {
+                loadOrders();
+            });
+
+            // Sự kiện nút Reset
+            $('#resetFilters').click(function () {
+                $('#filterCustomerName').val('');
+                $('#filterStartDate').val('');
+                $('#filterEndDate').val('');
+                $('#filterStatus').val('');
+                loadOrders();
+            });
+
+            // Lưu trạng thái
+            $('#saveStatusBtn').click(function () {
+                const orderId = $('#orderId').val();
+                const status = $('#status').val();
+                $.ajax({
+                    url: '/Order/UpdateOrderStatus',
+                    type: 'POST',
+                    data: { orderId: orderId, status: status },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            if (status === 'Đã huỷ') {
+                                alert('Tồn kho sản phẩm trong đơn hàng đã được cập nhật.');
+                            }
+                            $('#statusModal').modal('hide');
+                            loadOrders($('#filterDate').val());
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+                    }
+                });
+            });
+
+
+            // Khởi chạy
+            loadOrders();
+        });
+    </script>
+</body>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+
+</style>
+
+</html>

@@ -1,0 +1,146 @@
+﻿<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>
+<h2>Báo Cáo Thống Kê</h2>
+
+<div class="container">
+    <div class="row">
+        <!-- Ô Doanh Thu Theo Tháng -->
+        <div class="col-lg-6 col-12 mb-4">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3 id="doanhThuThang">150,000,000</h3>
+                    <p>Doanh Thu Theo Tháng</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-social-bitcoin"></i>
+                </div>
+                <a href="/ThongKe/DoanhThu" class="small-box-footer">Xem Chi Tiết <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+
+        <!-- Ô Doanh Thu Theo Ngày -->
+        <div class="col-lg-6 col-12 mb-4">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3 id="doanhThuNgay">150,000,000</h3>
+                    <p>Doanh Thu Theo Ngày</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-social-bitcoin"></i>
+                </div>
+                <a href="/ThongKe/DoanhThuNgay" class="small-box-footer">Xem Chi Tiết <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Ô Sản Phẩm Bán Chạy -->
+        <div class="col-lg-6 col-12 mb-4">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3 id="SPDaBan">53</h3>
+                    <p>Sản Phẩm Đã Bán Trong Tháng</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-fireball"></i>
+                </div>
+                <a href="/ThongKe/SPDaBan" class="small-box-footer">Xem Chi Tiết <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+
+        <!-- Ô Sản Phẩm Hết Hàng -->
+        <div class="col-lg-6 col-12 mb-4">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3 id="SPHetHang">44</h3>
+                    <p>Sản Phẩm Hết Hàng</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-laptop"></i>
+                </div>
+                <a href="/ThongKe/SPHetHang" class="small-box-footer">Xem Chi Tiết <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Gọi API lấy doanh thu của tháng hiện tại sử dụng AJAX
+    $.ajax({
+        url: '/ThongKe/GetDoanhThuThangHT',
+        method: 'GET',
+        dataType: 'json',  // Đảm bảo trả về dữ liệu dạng JSON
+        success: function (data) {
+            if (data.totalRevenue) {
+                $('#doanhThuThang').text(data.totalRevenue.toLocaleString('vi-VN'));
+            } else {
+                $('#doanhThuThang').text('0');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Lỗi khi gọi API GetDoanhThuThang: ", error);
+            $('#doanhThuThang').text('Không thể lấy dữ liệu');
+        }
+    });
+
+    // Gọi API lấy doanh thu của ngày hiện tại sử dụng AJAX
+    $.ajax({
+        url: '/ThongKe/GetDoanhThuNgayHT',
+        method: 'GET',
+        dataType: 'json',  // Đảm bảo trả về dữ liệu dạng JSON
+        success: function (data) {
+            if (data.totalRevenue) {
+                $('#doanhThuNgay').text(data.totalRevenue.toLocaleString('vi-VN'));
+            } else {
+                $('#doanhThuNgay').text('0');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Lỗi khi gọi API GetDoanhThuNgay: ", error);
+            $('#doanhThuNgay').text('Không thể lấy dữ liệu');
+        }
+    });
+    $.ajax({
+        url: '/ThongKe/GetProductSalesInMonthHT',
+        method: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            console.log(data);  // Xem dữ liệu trả về từ API
+            if (data.totalRevenue) {
+                $('#SPDaBan').text(data.totalRevenue.toLocaleString('vi-VN'));
+            } else {
+                $('#SPDaBan').text('0');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX error:", status, error); // Log lỗi nếu có
+            $('#SPDaBan').text('Không thể lấy dữ liệu');
+        }
+    });
+    $.ajax({
+        url: '/ThongKe/GetListSanPhamHT',
+        method: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            console.log(data);  // Xem dữ liệu trả về từ API
+            if (data.totalSP) {
+                $('#SPHetHang').text(data.totalSP.toLocaleString('vi-VN'));
+            } else {
+                $('#SPHetHang').text('0');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX error:", status, error); // Log lỗi nếu có
+            $('#SPHetHang').text('Không thể lấy dữ liệu');
+        }
+    });
+
+
+</script>

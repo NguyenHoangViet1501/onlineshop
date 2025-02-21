@@ -1,0 +1,121 @@
+﻿<h2>Danh sách sản phẩm hết hàng</h2>
+
+<table id="catalogueTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tên sản phẩm</th>
+            <th>Tên Danh Mục</th>
+            <th>Giá</th>
+            <th>Hãng</th>
+            <th>Ảnh</th>
+        </tr>
+    </thead>
+    <tbody id="catalogueList">
+        <!-- Nội dung bảng sẽ được thêm bằng AJAX -->
+    </tbody>
+</table>
+
+@*Phân Trang*@
+<nav>
+    <ul class="pagination">
+        <li id="prevPage" class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li id="currentPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="lastPage" class="page-item"><a class="page-link" href="#">1</a></li>
+        <li id="nextPage" class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+@*@section Scripts {*@
+<script type="text/javascript">
+  $(document).ready(function () {
+    var pageNumber = 1; // Bắt đầu từ trang 1
+    var pageSize = 8; // Số lượng sản phẩm mỗi trang
+    var tongSoTrang = 1;
+
+    // Hàm tải dữ liệu
+    function loadData() {
+        $.ajax({
+            url: '@Url.Action("GetListSanPham", "ThongKe")',
+            type: 'POST',
+            data: { pageNumber: pageNumber, pageSize: pageSize },
+            dataType: 'json',
+            success: function (data) {
+                console.log(data);  // In ra dữ liệu trả về từ server
+
+                var tableBody = $('#catalogueList');
+                tableBody.empty(); // Xóa bảng trước khi thêm dữ liệu mới
+
+                // Kiểm tra nếu listSanPham có dữ liệu hay không
+                if (data.listSanPham && data.listSanPham.length > 0) {
+                    $.each(data.listSanPham, function (index, value) {
+                        var STT = (index + 1) + (pageNumber - 1) * pageSize; // Cập nhật STT dựa trên trang
+                        var row = '<tr data-id="' + value.ProductID + '">' +
+                            '<td>' + STT + '</td>' +
+                            '<td><a href="/SanPham/Details/' + value.ProductID + '">' + value.Name + '</a></td>' +
+                            '<td>' + value.CatalogueName + '</td>' +
+                            '<td>' + value.Price + '</td>' +
+                            '<td>' + value.BrandName + '</td>' +
+                            '<td>' + value.Quantity + '</td>' +
+                            '<td><img src="' + value.ImagePath + '" alt="' + value.Name + '" width="100" /></td>' +
+                            '</tr>';
+                        tableBody.append(row);
+                    });
+                } else {
+                    console.log("Không có sản phẩm trong danh mục.");
+                }
+
+                // Cập nhật phân trang
+                tongSoTrang = Math.ceil(data.tongSoSanPham / pageSize);
+                $('#currentPage .page-link').text(pageNumber);
+                $('#lastPage .page-link').text(tongSoTrang);
+                updatePagination(tongSoTrang);
+            }
+        });
+    }
+
+    // Gọi hàm tải dữ liệu ngay khi trang được tải
+    loadData();
+
+    // Hàm cập nhật phân trang
+    function updatePagination(totalPages) {
+        if (pageNumber === 1) {
+            $('#prevPage').addClass('disabled');
+        } else {
+            $('#prevPage').removeClass('disabled');
+        }
+
+        if (pageNumber === totalPages) {
+            $('#nextPage').addClass('disabled');
+        } else {
+            $('#nextPage').removeClass('disabled');
+        }
+    }
+
+    // Xử lý khi nhấn nút "Previous" (trang trước)
+    $('#prevPage').click(function () {
+        if (pageNumber > 1) {
+            pageNumber--;
+            loadData();
+        }
+    });
+
+    // Xử lý khi nhấn nút "Next" (trang sau)
+    $('#nextPage').click(function () {
+        if (pageNumber < tongSoTrang) {
+            pageNumber++;
+            loadData();
+        }
+    });
+});
+
+</script>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>

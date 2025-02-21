@@ -1,0 +1,21 @@
+﻿<html>
+<head>
+    <title>Layout cho Khách hàng</title>
+    <!-- Các phần header khác -->
+</head>
+<body>
+
+
+
+    <div class="container">
+        @RenderBody()  <!-- Đây là nơi nội dung view con sẽ hiển thị -->
+    </div>
+
+    <footer>
+        <!-- Footer content -->
+    </footer>
+
+    <!-- Phần này sẽ render section "Scripts" nếu có trong view -->
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

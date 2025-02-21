@@ -1,0 +1,276 @@
+﻿@{
+    var userName = Session["Name"] as string; 
+}
+<html>
+<head>
+    <title>E-Shopper</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <link href="~/Eshopper/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Eshopper/css/font-awesome.min.css" rel="stylesheet">
+    <link href="~/Eshopper/css/prettyPhoto.css" rel="stylesheet">
+    <link href="~/Eshopper/css/price-range.css" rel="stylesheet">
+    <link href="~/Eshopper/css/price-range.css" rel="stylesheet">
+    <link href="~/Eshopper/css/main.css" rel="stylesheet">
+    <link href="~/Eshopper/css/responsive.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->
+    <link rel="shortcut icon" href="~/Eshopper/images/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="~/Eshopper/images/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="~/Eshopper/images/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="~/Eshopper/images/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="~/Eshopper/images/ico/apple-touch-icon-57-precomposed.png">
+    <!-- Các phần header khác -->
+    <style>
+        /* Đảm bảo searchBox chiếm hết chiều rộng có sẵn */
+        /* Định dạng chung cho search box */
+
+        #aaa {
+            position: fixed; /* Đặt header ở vị trí cố định */
+            top: 0; /* Dính vào phía trên cùng */
+            left: 0; /* Dính vào bên trái của trang */
+            width: 100%; /* Chiếm toàn bộ chiều rộng của trang */
+            z-index: 1000; /* Đảm bảo header luôn hiển thị trên các phần tử khác */
+            background-color: #fff; /* Màu nền của header */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Thêm bóng đổ nhẹ cho header */
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column; /* Sắp xếp các phần tử con theo chiều dọc */
+        }
+
+        /* Đảm bảo không bị che khuất khi header cố định */
+        body {
+            margin-top: 150px; /* Đặt khoảng cách trên cho body để không bị che bởi header */
+        }
+        main {
+            flex: 1; /* Nội dung chiếm hết không gian còn lại */
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto; /* Đảm bảo footer luôn ở dưới cùng */
+        }
+    </style>
+</head>
+<body>
+    <header id="aaa">
+        <div class="header_top">
+            <!--header_top-->
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="contactinfo">
+                            <ul class="nav nav-pills">
+                                <li><a href="#"><i class="fa fa-phone"></i> +2 95 01 88 821</a></li>
+                                <li><a href="#"><i class="fa fa-envelope"></i> info@domain.com</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="social-icons pull-right">
+                            <ul class="nav navbar-nav">
+                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
+                                <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="header-middle">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6 ">
+                        <div class="logo pull-left">
+                            <a href="/IndexKH/Index"><img src="~/Eshopper/images/home/logo.png" alt=""></a>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="shop-menu pull-right">
+                            <ul class="nav navbar-nav">
+                                <li><a href="#" id="cartLink"><i class="fa fa-shopping-cart"></i> Cart</a></li>
+                                @if (!string.IsNullOrEmpty(userName))
+                                {
+                                    <!-- Hiển thị tên người dùng và menu thả xuống -->
+                                    <li class="dropdown">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                            <i class="fa fa-user"></i> Xin chào, @userName <b class="caret"></b>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="/Customer/OrderHistory">Xem thông tin đơn hàng</a></li>
+                                            <li><a href="/Customer/Index">Xem thông tin tài khoản</a></li>
+                                            <li><a href="/Login/Logout" id="logoutBtn">Đăng xuất</a></li>
+                                        </ul>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <!-- Hiển thị Login nếu chưa đăng nhập -->
+                                    <li><a href="/Login/Login"><i class="fa fa-lock"></i> Login</a></li>
+                                }
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <main>
+        <div class="container">
+            @RenderBody()  <!-- Đây là nơi nội dung view con sẽ hiển thị -->
+        </div>
+    </main>
+
+
+    <footer id="footer">
+        <!--Footer-->
+        <div class="footer-top">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="companyinfo">
+                            <h2><span>e</span>-shopper</h2>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,sed do eiusmod tempor</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="col-sm-3">
+                            <div class="video-gallery text-center">
+                                <a href="#">
+                                    <div class="iframe-img">
+                                        <img src="~/Eshopper/images/home/iframe1.png" alt="" />
+                                    </div>
+                                    <div class="overlay-icon">
+                                        <i class="fa fa-play-circle-o"></i>
+                                    </div>
+                                </a>
+                                <p>Circle of Hands</p>
+                                <h2>24 DEC 2014</h2>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="video-gallery text-center">
+                                <a href="#">
+                                    <div class="iframe-img">
+                                        <img src="~/Eshopper/images/home/iframe2.png" alt="" />
+                                    </div>
+                                    <div class="overlay-icon">
+                                        <i class="fa fa-play-circle-o"></i>
+                                    </div>
+                                </a>
+                                <p>Circle of Hands</p>
+                                <h2>24 DEC 2014</h2>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="video-gallery text-center">
+                                <a href="#">
+                                    <div class="iframe-img">
+                                        <img src="~/Eshopper/images/home/iframe3.png" alt="" />
+                                    </div>
+                                    <div class="overlay-icon">
+                                        <i class="fa fa-play-circle-o"></i>
+                                    </div>
+                                </a>
+                                <p>Circle of Hands</p>
+                                <h2>24 DEC 2014</h2>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="video-gallery text-center">
+                                <a href="#">
+                                    <div class="iframe-img">
+                                        <img src="~/Eshopper/images/home/map.png" alt="" />
+                                    </div>
+                                    <div class="overlay-icon">
+                                        <i class="fa fa-play-circle-o"></i>
+                                    </div>
+                                </a>
+                                <p>Circle of Hands</p>
+                                <h2>24 DEC 2014</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="address">
+                            <img src="~/Eshopper/images/home/map.png" alt="" />
+                            <p>Đại Học Xây Dựng Hà Nội</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </footer>
+
+    <script>
+    $(document).ready(function () {
+        var userName = "@(userName ?? "")";
+        $('#logoutBtn').click(function (event) {
+            if (!userName || userName.trim() === "") {
+                alert("Vui lòng đăng nhập");
+                window.location.href = '@Url.Action("Login", "Login")';
+                event.preventDefault();
+            } else {
+                $.ajax({
+                    url: '@Url.Action("Logout", "Login")',
+                    type: 'POST',
+                    success: function () {
+                        window.location.href = '@Url.Action("Login", "Login")';
+                    },
+                    error: function () {
+                        alert("Có lỗi xảy ra khi đăng xuất.");
+                    }
+                });
+            }
+        });
+
+
+        $('#cartLink').on('click', function (e) {
+            e.preventDefault();
+            if (!userName || userName.trim() === "") {
+                alert("Bạn cần đăng nhập để xem giỏ hàng.");
+                @*window.location.href = '@Url.Action("Login", "Account")'*@
+            } else {
+                window.location.href = '@Url.Action("Index", "Cart")';
+            }
+        });
+    });
+    </script>
+    @Scripts.Render("~/bundles/jquery")
+    <script src="~/Eshopper/js/jquery.js"></script>
+    <script src="~/Eshopper/js/bootstrap.min.js"></script>
+    <script src="~/Eshopper/js/jquery.scrollUp.min.js"></script>
+    <script src="~/Eshopper/js/price-range.js"></script>
+    <script src="~/Eshopper/js/jquery.prettyPhoto.js"></script>
+    <script src="~/Eshopper/js/main.js"></script>
+    @RenderSection("Scripts", required: false)
+    
+</body>
+</html>

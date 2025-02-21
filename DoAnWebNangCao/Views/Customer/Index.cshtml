@@ -1,0 +1,79 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutKH.cshtml";  // Chỉ định layout cho Khách hàng
+    var userID = Session["UserId"] as string;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+
+        <!-- Main Content -->
+        <main class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 content">
+            <div id="content-display">
+                <table class="table table-bordered">
+                    <thead style="background-color: #FE980F">
+                        <tr>
+                            <th>Thông tin</th>
+                            <th>Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-details">
+                      
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        const userId = '@userID'
+
+        function loadUserDetails() {
+            $.ajax({
+                url: '/Customer/Details',
+                type: 'POST',
+                data: { userId: userId },
+                success: function (response) {
+                    if (response.success) {
+                        const data = response.data;
+                        const rows = `
+                            <tr>
+                                <td>Tên đăng nhập</td>
+                                <td>${data.Account}</td>
+                            </tr>
+                            <tr>
+                                <td>Họ và tên</td>
+                                <td>${data.Name}</td>
+                            </tr>
+                            <tr>
+                                <td>Số điện thoại</td>
+                                <td>${data.PhoneNumber}</td>
+                            </tr>
+                            <tr>
+                                <td>Địa chỉ</td>
+                                <td>${data.Address}</td>
+                            </tr>
+                            <tr>
+                                <td>Email</td>
+                                <td>${data.Email}</td>
+                            </tr>
+                        `;
+                        $('#user-details').html(rows);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert("Đã xảy ra lỗi khi lấy thông tin người dùng.");
+                }
+            });
+        }
+
+        loadUserDetails();
+    });
+</script>
+
+
+

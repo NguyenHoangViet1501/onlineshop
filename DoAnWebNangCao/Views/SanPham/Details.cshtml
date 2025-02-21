@@ -1,0 +1,122 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Chi tiết sản phẩm</h2>
+
+<div class="container mt-5">
+    <div id="product-detail" class="row">
+        <!-- Loading placeholder -->
+        <div class="col-12 text-center" id="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Đang tải...</span>
+            </div>
+        </div>
+
+        <!-- Product detail content -->
+        <div class="col-md-6" id="product-image">
+            <!-- Image will be loaded here -->
+        </div>
+
+        <div class="col-md-6" id="product-info">
+            <!-- Product info will be loaded here -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Lấy ID sản phẩm từ URL
+            var productId = window.location.pathname.split('/').pop();
+
+            // Load chi tiết sản phẩm
+            loadProductDetail(productId);
+        });
+
+        function loadProductDetail(productId) {
+            $.ajax({
+                url: '/SanPham/GetProductDetail/' + productId,
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Ẩn loading
+                        $('#loading').hide();
+
+                        // Render thông tin sản phẩm
+                        renderProductDetail(response.data);
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        alert(response.message || 'Không thể tải thông tin sản phẩm');
+                    }
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra khi tải thông tin sản phẩm');
+                }
+            });
+        }
+
+        function renderProductDetail(product) {
+            // Render hình ảnh
+            $('#product-image').html(`
+                <img src="${product.ImagePath}"
+                     class="img-fluid"
+                     alt="${product.ProductName}"
+                     onerror="this.src='/Images/default.jpg'"
+                />
+            `);
+
+            // Render thông tin sản phẩm
+            $('#product-info').html(`
+                <h1 class="mb-4">${product.ProductName}</h1>
+                <div class="mb-3">
+                    <h5 class="text-muted">Danh mục: ${product.CategoryName}</h5>
+                </div>
+                <div class="mb-3">
+                    <h3 class="text-primary">
+                        ${new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(product.Price)}
+                    </h3>
+                </div>
+                <div class="mb-4">
+                    <p><strong>Số lượng trong kho:</strong> ${product.Quantity}</p>
+                </div>
+                <div class="mb-4">
+                    <p><strong>Hãng:</strong> ${product.BrandName}</p>
+                </div>
+                <div class="mb-4">
+                    <h5>Mô tả sản phẩm:</h5>
+                    <p>${product.Description || 'Không có mô tả'}</p>
+                </div>
+                <div class="mb-3">
+                    <h5>Color: ${product.color || 'Chưa có màu sắc'}</h5>
+                </div>
+                <div class="m<asp:CheckBox runat="server"></asp:CheckBox>
+                    <h5>Size: ${product.size || 'Chưa có kích cỡ'}</h5>
+                </div>
+
+            `);
+        }
+
+        // Hàm thêm vào giỏ hàng (implement sau)
+        function addToCart(productId) {
+            alert('Thêm vào giỏ hàng: ' + productId);
+        }
+
+        // Hàm mua ngay (implement sau)
+        function buyNow(productId) {
+            alert('Mua ngay: ' + productId);
+        }
+    </script>
+}
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>

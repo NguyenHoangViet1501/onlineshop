@@ -1,0 +1,245 @@
+﻿
+<h2>Thống Kê Doanh Thu Theo Ngày</h2>
+
+<!-- Form để chọn ngày -->
+<form id="revenueForm">
+    <label for="startDate">Ngày bắt đầu:</label>
+    <input type="date" id="startDate" name="startDate" required />
+
+    <label for="endDate">Ngày kết thúc:</label>
+    <input type="date" id="endDate" name="endDate" required />
+
+    <button type="submit" id="fetchDataButton">Truy xuất</button>
+    <button id="printButton" class="btn btn-success" style="color: white; background-color: palevioletred; display: none; border: none; height: 37px; float: right; ">In báo cáo</button>
+
+</form>
+
+<!-- Bảng để hiển thị doanh thu -->
+<table id="revenueTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Ngày Mua Hàng</th>
+            <th>Số Lượng Đơn Hàng</th>
+            <th>Tổng Doanh Thu</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Tổng doanh thu -->
+<div id="totalRevenue" style="color: red; font-weight: bold; margin-top: 10px; font-size: 25px; text-align: right; margin-right: 20px;"></div>
+
+<!-- Phân trang -->
+
+
+<script type="text/javascript">
+   $(document).ready(function () {
+    var pageNumber = 1; // Trang bắt đầu
+    var pageSize = 8; // Kích thước trang
+
+    // Khi nhấn nút "Truy xuất"
+    $('#revenueForm').submit(function (e) {
+        e.preventDefault();
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+
+        if (new Date(startDate) > new Date(endDate)) {
+            alert('Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.');
+            return;
+        }
+
+        loadData(startDate, endDate, pageNumber, pageSize);
+    });
+       // Hàm định dạng ngày
+       function formatDate(dateString) {
+           var regex = /\/Date\((\d+)\)\//;
+           var match = regex.exec(dateString);
+           if (match && match[1]) {
+               var timestamp = parseInt(match[1]);
+               var date = new Date(timestamp);
+               var day = ("0" + date.getDate()).slice(-2);
+               var month = ("0" + (date.getMonth() + 1)).slice(-2);
+               var year = date.getFullYear();
+               return day + "/" + month + "/" + year;
+           }
+           return dateString;
+       }
+       function formatDateForLink(dateString) {
+           var regex = /\/Date\((\d+)\)\//;
+           var match = regex.exec(dateString);
+           if (match && match[1]) {
+               var timestamp = parseInt(match[1]);
+               var date = new Date(timestamp);
+               var day = ("0" + date.getDate()).slice(-2);
+               var month = ("0" + (date.getMonth() + 1)).slice(-2);
+               var year = date.getFullYear();
+               return year + "-" + month + "-" + day;
+           }
+       }
+
+       // Hàm định dạng tiền Việt
+       function formatCurrency(amount) {
+           return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }); // Định dạng số theo kiểu Việt Nam
+       }
+
+    // Hàm tải dữ liệu
+    function loadData(startDate, endDate) {
+        $.ajax({
+            url: '@Url.Action("GetRevenueStats", "ThongKe")',
+            type: 'GET',
+            data: {
+                startDate: startDate,
+                endDate: endDate,
+            },
+            dataType: 'json',
+            success: function (data) {
+                var tableBody = $('#revenueTable tbody');
+                tableBody.empty();
+
+                var totalRevenue = 0;
+                $('#printButton').show();
+                if (data.Data && data.Data.length > 0) {
+                    $.each(data.Data, function (index, value) {
+                        var ngayMua = formatDate(value.OrderDate);
+                        var dateForLink = formatDateForLink(value.OrderDate);
+                        var STT = (index + 1 + (pageNumber - 1) * pageSize);
+                        var row = '<tr>' +
+                            '<td>' + STT + '</td>' +
+                            '<td>' + ngayMua + '</td>' +
+                            '<td>' + value.TotalOrders + '</td>' +
+                            '<td>' + formatCurrency(value.TotalRevenue) + '</td>' +
+                            '<td><a href="/DonHang/DonHangNgay?date=' + dateForLink + '" class="btn btn-info">Xem</a></td>' +
+                            '</tr>';
+                        tableBody.append(row);
+
+                        totalRevenue += value.TotalRevenue;
+                    });
+                }
+
+                $('#totalRevenue').text('Tổng Doanh Thu: ' + formatCurrency(totalRevenue));
+            },
+        });
+    }
+
+    // Hàm in dữ liệu
+       $('#printButton').click(function () {
+           var printContent = `
+        <h2>Thống Kê Doanh Thu Theo Ngày</h2>
+        <div>
+            <strong>Ngày bắt đầu:</strong> ${$('#startDate').val()} <br />
+            <strong>Ngày kết thúc:</strong> ${$('#endDate').val()} <br />
+        </div>
+        <table style="width: 100%; border-collapse: collapse;" border="1">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Ngày Mua Hàng</th>
+                    <th>Số Lượng Đơn Hàng</th>
+                    <th>Tổng Doanh Thu</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${$('#revenueTable tbody tr').map(function () {
+               var cells = $(this).find('td'); // Lấy tất cả các ô của hàng
+               return `
+                        <tr>
+                            <td>${$(cells[0]).text()}</td>
+                            <td>${$(cells[1]).text()}</td>
+                            <td>${$(cells[2]).text()}</td>
+                            <td>${$(cells[3]).text()}</td>
+                        </tr>`;
+           }).get().join('')}
+            </tbody>
+        </table>
+        <div style="text-align: right; font-size: 18px; margin-top: 10px; color: red;">
+            ${$('#totalRevenue').text()}
+        </div>
+    `;
+
+           var printWindow = window.open('', '_blank');
+           printWindow.document.open();
+           printWindow.document.write(`
+        <html>
+            <head>
+                <title>Báo cáo doanh thu</title>
+                <style>
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                    }
+                    table, th, td {
+                        border: 1px solid black;
+                    }
+                    th, td {
+                        padding: 8px;
+                        text-align: center;
+                    }
+                    h2 {
+                        text-align: center;
+                        color: #0069d9;
+                        font-size: 28px;
+                    }
+                </style>
+            </head>
+            <body onload="window.print()">
+                ${printContent}
+            </body>
+        </html>
+    `);
+           printWindow.document.close();
+       });
+
+});
+</script>
+<style>
+    * {
+        margin-bottom: 10px;
+    }
+
+    #endDate {
+        padding: 8px 50px;
+        border: 2px solid #0069d9; /* Viền xanh lá */
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+        text-align: center;
+    }
+
+    #startDate {
+        padding: 8px 50px;
+        border: 2px solid #0069d9; /* Viền xanh lá */
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+        text-align: center;
+    }
+
+    #fetchDataButton {
+        padding: 8px 16px;
+        background-color: #0069d9; /* Màu nền xanh lá */
+        color: white; /* Màu chữ trắng */
+        border: none;
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        #fetchDataButton:hover {
+            background-color: #0056b3;
+        }
+
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>

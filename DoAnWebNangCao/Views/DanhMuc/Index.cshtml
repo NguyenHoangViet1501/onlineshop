@@ -1,0 +1,314 @@
+﻿<h2>Danh Sách Danh Mục</h2>
+
+<div style="margin-bottom:10px">
+    @Html.TextBox("SearchDanhMuc", "", new { placeholder = "Nhập tên sản phẩm" })
+    <input type="submit" id="searchBtn" value="Tìm">
+    <br />
+</div>
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCatalogueModal">Thêm</button>
+
+<table id="catalogueTable" class="table">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tên Danh Mục</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="catalogueList">
+    </tbody>
+</table>
+
+@*Phân Trang*@
+<nav>
+    <ul class="pagination">
+        <li id="prevPage" class="page-item"><a class="page-link" href="#">Previous</a></li>
+        <li id="currentPage" class="page-item"><a class="page-link" href="#"></a></li>
+        <li id="lastPage" class="page-item"><a class="page-link" href="#"></a></li>
+        <li id="nextPage" class="page-item"><a class="page-link" href="#">Next</a></li>
+    </ul>
+</nav>
+
+@*HỘP THOẠI BẬT LÊN KHI ẤN NÚT THÊM*@
+<div class="modal fade" id="addCatalogueModal" tabindex="-1" aria-labelledby="addCatalogueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addCatalogueModalLabel">Thêm Danh Mục Sản Phẩm</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCatalogueForm">
+                    <div class="form-group">
+                        <label for="catalogueName">Tên Danh Mục</label>
+                        <input type="text" class="form-control" id="catalogueName" name="catalogueName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveCatalogueBtn" data-bs-dismiss="modal">Hoàn Thành</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*HỘP THOẠI BẬT LÊN KHI ẤN NÚT EDIT*@
+<div class="modal fade" id="editCatalogueModal" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCatalogueModalLabel">Chỉnh sửa sản phẩm</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCatalogueForm">
+                    <div class="form-group">
+                        <input type="hidden" id="editCatalogueID" name="ID" />
+                        <label for="catalogueName">Tên Danh Mục</label>
+                        <input type="text" class="form-control" id="editCatalogueName" name="catalogueName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveEditCatalogueBtn" data-bs-dismiss="modal">Hoàn Thành</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var pageNumber = 1;
+        var pageSize = 10;
+        var tongSoTrang = 1;
+
+        function loadData() {
+            console.log(pageNumber + " " + tongSoTrang);
+            $.ajax({
+                url: '@Url.Action("GetListDanhMuc", "DanhMuc")',
+                type: 'POST',
+                data: { pageNumber: pageNumber, pageSize: pageSize },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.listDanhMuc.length === 0 && pageNumber != 1) {
+                        location.reload();
+                    }
+                    var tableBody = $('#catalogueTable tbody');
+                    tableBody.empty();
+                    $.each(data.listDanhMuc, function (index, value) {
+                        var STT = (index + 1);
+                        var row = '<tr data-id="' + value.CatalogueID + '">' +
+                            '<td>' + STT + '</td>' +
+                            '<td>' + value.CatalogueName + '</td>' +
+                            '<td>' + '<button id="editBtn" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#editCatalogueModal">Edit</button>' + " " +
+                            '<button id="delBtn" class="btn btn-danger">Delete</button>' + '</td>' +
+                            '</tr>';
+                        tableBody.append(row);
+                    });
+
+                    tongSoTrang = Math.ceil(data.tongSoDanhMuc / pageSize);
+                    $('#currentPage .page-link').text(pageNumber);
+                    $('#lastPage .page-link').text(tongSoTrang);
+
+                    updateTrang(tongSoTrang);
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+        loadData();
+
+        //CAP NHAT PHAN TRANG
+        function updateTrang(totalPages) {
+            if (pageNumber === 1) {
+                $('#prevPage').addClass('disabled');
+            } else {
+                $('#prevPage').removeClass('disabled');
+            }
+
+            if (pageNumber === totalPages) {
+                $('#nextPage').addClass('disabled');
+            } else {
+                $('#nextPage').removeClass('disabled');
+            }
+        };
+
+        $('#prevPage').click(function () {
+            if (pageNumber > 1) {
+                pageNumber--;
+                loadData();
+            }
+        });
+
+        $('#nextPage').click(function () {
+            if (pageNumber < tongSoTrang) {
+                pageNumber++;
+                loadData();
+            }
+        });
+
+        //THEM DANH MUC
+        $('#saveCatalogueBtn').click(function () {
+            var tenDanhMuc = $('#catalogueName').val();
+            tenDanhMuc.trim();
+            if (tenDanhMuc == "") {
+                alert("Không được để trống tên danh mục");
+                return;
+            }
+            $.ajax({
+                url: '@Url.Action("TaoDanhMuc", "DanhMuc")',
+                type: 'POST',
+                dataType: 'json',
+                data: { tenDanhMuc: tenDanhMuc },
+                success: function (response) {
+                    if (response.success == true) {
+                        toastr["success"]("Thêm thành công!", "Thông báo")
+                        //$('#addCatalogueModal').modal('hide'); // Đóng modal
+                        //$('.modal-backdrop').remove();
+                        //$('#addCatalogueModal').modal('toggle');
+                        loadData(); // Cập nhật lại danh sách
+                    } else {
+                        toastr["error"]("lỗi: " + response.message, "Thông báo")
+                    }
+                },
+                error: function (errormessage) {
+                    alert("Có lỗi xảy ra: " + errormessage.responseText);
+                }
+            });
+        });
+
+        //SUA DANH MUC
+        $(document).on('click', '#editBtn', function () {
+            var catalogueID = $(this).closest('tr').data('id');
+            $.ajax({
+                url: '@Url.Action("GetObjectById", "DanhMuc")',
+                type: 'GET',
+                data: { id: catalogueID },
+                success: function (response) {
+                    if (response.success) {
+                        $('#editCatalogueID').val(response.danhMuc.CatalogueID);
+                        $('#editCatalogueName').val(response.danhMuc.CatalogueName);
+                        $('#editCatalogueModal').modal('show');// Hiển thị form chỉnh sửa
+                    } else {
+                        alert(response.message);
+                    }
+                }
+            });
+        });
+
+        $('#saveEditCatalogueBtn').click(function () {
+            var id = $('#editCatalogueID').val();
+            var name = $('#editCatalogueName').val();
+            $.ajax({
+                url: '@Url.Action("SuaDanhMuc", "DanhMuc")',
+                type: 'POST',
+                data: { id: id,ten: name },
+                success: function (response) {
+                    toastr["success"]("Sửa thành công!", "Thông báo")
+                    //$('#editCatalogueModal').modal('hide');
+                    //$('.modal-backdrop').remove();
+                    loadData();
+                },
+                error: function (errormessage) {
+                    alert("Có lỗi xảy ra: " + errormessage.responseText);
+                }
+            });
+        });
+
+        //XOA DANH MUC
+        $(document).on('click', '#delBtn', function () {
+            var catalogueID = $(this).closest('tr').data('id');
+            if (confirm("Bạn có chắc muốn xóa danh mục này không?")) {
+                $.ajax({
+                    url: '@Url.Action("XoaDanhMuc", "DanhMuc")',
+                    type: 'POST',
+                    data: { id: catalogueID },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr["success"]("Xoá thành công!", "Thông báo")
+                            loadData();
+                        } else {
+                            toastr["error"]("lỗi: " +response.message, "Thông báo")
+                        }
+                    },
+                    error: function (errormessage) {
+                        alert("Có lỗi xảy ra: " + errormessage.responseText);
+                    }
+                });
+            }
+        });
+
+        $('#searchBtn').click(function () {
+            event.preventDefault();
+            var searchVal = $('#SearchDanhMuc').val();
+            $.ajax({
+                url: '@Url.Action("TimKiemDanhMuc", "DanhMuc")',
+                type: 'GET',
+                dataType: 'json',
+                data: { name: searchVal },
+                success: function (data) {
+                    //console.log(data);
+                    if (data.length == 0) {
+                        alert("Khong co ban ghi");
+                        loadData();
+                    } else {
+                        var tableBody = $('#catalogueTable tbody');
+                        tableBody.empty(); // Xóa nội dung cũ
+                        $.each(data, function (index, value) {
+                            var row = '<tr data-id="' + value.CatalogueID + '">' +
+                                '<td>' + value.CatalogueID + '</td>' +
+                                '<td>' + value.CatalogueName + '</td>' +
+                                '<td>' + '<button id="editBtn" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#editCatalogueModal">Edit</button>' + " " +
+                                '<button id="delBtn" class="btn btn-danger">Delete</button>' + '</td>' +
+                                '</tr>';
+                            tableBody.append(row);
+                        });
+                    }
+                },
+                error: function (error) {
+                    console.log("Đã xảy ra lỗi", error);
+                }
+            });
+        });
+    });
+</script>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+
+    #searchBtn {
+        padding: 8px 16px;
+        background-color: #0069d9; /* Màu nền xanh lá */
+        color: white; /* Màu chữ trắng */
+        border: none;
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    #SearchDanhMuc {
+        padding: 8px 50px;
+        border: 2px solid #0069d9; /* Viền xanh lá */
+        border-radius: 4px; /* Bo góc */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+        text-align: center;
+    }
+</style>
+
+
+

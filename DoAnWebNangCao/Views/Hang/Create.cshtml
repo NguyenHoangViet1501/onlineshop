@@ -1,0 +1,143 @@
+﻿<h2>Thêm mới nhãn hàng</h2>
+
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        /*margin-bottom: 20px;*/ /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+
+    input[type=text], select {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    input[type=submit] {
+        width: 100%;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .form-group {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+/*    #myform {
+        margin-left: 250px;
+    }*/
+</style>
+<form id="myform" enctype="multipart/form-data" method="post">
+    <div class="card-body">
+        <div class="form-group">
+            <label>Danh Mục:</label>
+            <select style="margin-right:5px;" class="custom-select rounded-0" id="DanhMuc" name="DanhMuc">
+                <option>Không có</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="BrandName">Tên nhãn hàng:</label>
+            <input type="text" class="form-control" name="BrandName" placeholder="Điền giá sản phẩm">
+        </div>
+    </div>
+    <!-- /.card-body -->
+
+    <div >
+        <input type="submit"style="background-color: #0069d9; margin-left:420px" value="Thêm mới" />
+    </div>
+</form>
+
+<script type="text/javascript">
+function LoadDataDanhMucCha() {
+    $.ajax({
+        url: '@Url.Action("GetListDanhMucForSP", "DanhMuc")', // Đảm bảo URL này đúng
+        type: 'POST',  // Nếu chỉ lấy dữ liệu, có thể sử dụng 'GET' thay vì 'POST'
+        dataType: 'json',
+        success: function (response) {
+            // Kiểm tra dữ liệu trả về từ server
+            if (response && response.data) {
+                let danhSachDM = response.data;
+                let select = $("#DanhMuc"); // Xóa tất cả các mục cũ trong dropdown
+                $.each(danhSachDM, function (index, danhMuc) {
+                    select.append("<option value='" + danhMuc.CatalogueID + "'>" + danhMuc.CatalogueName + "</option>");
+                });
+            } else {
+                alert("Không có danh mục nào được tải.");
+            }
+        },
+        error: function () {
+            alert('Error loading categories.');
+        }
+    });
+}
+    $('#imageFile').change(function () {
+        console.log('ads');
+          var file = this.files[0];
+          if (file) {
+              var reader = new FileReader();
+              reader.onload = function (e) {
+                  $('#previewImage').attr('src', e.target.result);
+                  $('#previewImage').show();
+              }
+              reader.readAsDataURL(file);
+          }
+     });
+
+    $(document).ready(function () {
+        LoadDataDanhMucCha();
+        $(document).ready(function () {
+    // Khi form được submit
+    $('#myform').submit(function (event) {
+        event.preventDefault(); // Ngừng hành động mặc định của form (refresh trang)
+
+        var form = $('#myform');  // Lấy đối tượng form
+        var formData = new FormData(form[0]);  // Chuyển từ đối tượng jQuery sang DOM
+
+        // Lấy giá trị của danh mục đã chọn
+        var danhMucId = $("#DanhMuc").val();
+        formData.append("IdDanhMuc", danhMucId);
+
+        // Gửi yêu cầu AJAX
+        $.ajax({
+            url: '@Url.Action("PostCreate", "Hang")',  // Đảm bảo đường dẫn đúng
+            type: 'POST',
+            dataType: 'json',
+            data: formData,
+            processData: false,  // Không xử lý dữ liệu
+            contentType: false,  // Không thiết lập kiểu nội dung
+            success: function (response) {
+                if (response.success) {
+                    toastr["success"]("Thêm mới thành công!", "Thông báo");
+                    // Sau 2 giây, chuyển hướng về trang danh sách sản phẩm
+                    setTimeout(function () {
+                        location.replace('@Url.Action("Index", "Hang")');
+                    }, 2000);
+                } else {
+                    toastr["error"]("Thêm mới thất bại!", "Thông báo");
+                }
+            },
+            error: function () {
+                alert('Có lỗi xảy ra khi gửi yêu cầu.');
+            }
+        });
+    });
+});
+
+    });
+</script>

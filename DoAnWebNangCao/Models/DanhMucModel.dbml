@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MobileShopDB_2" Class="DanhMucModelDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Table Name="dbo.Cart" Member="Carts">
+    <Type Name="Cart">
+      <Column Name="CartID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="ProductID" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="CreateDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="SessionID" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="Soluong" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="Product_Cart" Member="Product" ThisKey="ProductID" OtherKey="ProductID" Type="Product" IsForeignKey="true" />
+      <Association Name="Product_Cart1" Member="Product1" ThisKey="ProductID" OtherKey="ProductID" Type="Product" IsForeignKey="true" />
+      <Association Name="Session_Cart" Member="Session" ThisKey="SessionID" OtherKey="SessionID" Type="Session" IsForeignKey="true" />
+      <Association Name="Session_Cart1" Member="Session1" ThisKey="SessionID" OtherKey="SessionID" Type="Session" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Variants" Member="Variants">
+    <Type Name="Variant">
+      <Column Name="ProductID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Color" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Size" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Price" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="Product_Variant" Member="Product" ThisKey="ProductID" OtherKey="ProductID" Type="Product" IsForeignKey="true" />
+      <Association Name="Product_Variant1" Member="Product1" ThisKey="ProductID" OtherKey="ProductID" Type="Product" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.OrderDetails" Member="OrderDetails">
+    <Type Name="OrderDetail">
+      <Column Name="OrderDetailID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="OrderID" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="ProductID" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="Quantity" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Price" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="Order_OrderDetail" Member="Order" ThisKey="OrderID" OtherKey="OrderID" Type="Order" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+      <Association Name="Product_OrderDetail" Member="Product" ThisKey="ProductID" OtherKey="ProductID" Type="Product" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Orders" Member="Orders">
+    <Type Name="Order">
+      <Column Name="OrderID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="UserID" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="OrderDate" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="TotalPrice" Type="System.Decimal" DbType="Decimal(18,2)" CanBeNull="true" />
+      <Column Name="Status" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Association Name="Order_OrderDetail" Member="OrderDetails" ThisKey="OrderID" OtherKey="OrderID" Type="OrderDetail" />
+      <Association Name="User_Order" Member="User" ThisKey="UserID" OtherKey="UserID" Type="User" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ProductBrand" Member="ProductBrands">
+    <Type Name="ProductBrand">
+      <Column Name="BrandID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CatalogueID" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="BrandName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Association Name="ProductBrand_Product" Member="Products" ThisKey="BrandID" OtherKey="BrandID" Type="Product" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ProductCatalogues" Member="ProductCatalogues">
+    <Type Name="ProductCatalogue">
+      <Column Name="CatalogueID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CatalogueName" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Association Name="ProductCatalogue_Product" Member="Products" ThisKey="CatalogueID" OtherKey="CatalogueID" Type="Product" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Products" Member="Products">
+    <Type Name="Product">
+      <Column Name="ProductID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="Price" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="Quantity" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Image_path" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="color" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="size" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="CatalogueID" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Column Name="BrandID" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Association Name="Product_Cart" Member="Carts" ThisKey="ProductID" OtherKey="ProductID" Type="Cart" />
+      <Association Name="Product_Cart1" Member="Carts1" ThisKey="ProductID" OtherKey="ProductID" Type="Cart" />
+      <Association Name="Product_Variant" Member="Variant" ThisKey="ProductID" OtherKey="ProductID" Type="Variant" Cardinality="One" />
+      <Association Name="Product_Variant1" Member="Variant1" ThisKey="ProductID" OtherKey="ProductID" Type="Variant" Cardinality="One" />
+      <Association Name="Product_OrderDetail" Member="OrderDetails" ThisKey="ProductID" OtherKey="ProductID" Type="OrderDetail" />
+      <Association Name="ProductCatalogue_Product" Member="ProductCatalogue" ThisKey="CatalogueID" OtherKey="CatalogueID" Type="ProductCatalogue" IsForeignKey="true" DeleteRule="CASCADE" />
+      <Association Name="ProductBrand_Product" Member="ProductBrand" ThisKey="BrandID" OtherKey="BrandID" Type="ProductBrand" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Roles" Member="Roles">
+    <Type Name="Role">
+      <Column Name="RoleID" Type="System.Boolean" DbType="Bit NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="RoleName" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Association Name="Role_User" Member="Users" ThisKey="RoleID" OtherKey="RoleID" Type="User" />
+      <Association Name="Role_User1" Member="Users1" ThisKey="RoleID" OtherKey="RoleID" Type="User" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Sessions" Member="Sessions">
+    <Type Name="Session">
+      <Column Name="SessionID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="UserID" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
+      <Association Name="Session_Cart" Member="Carts" ThisKey="SessionID" OtherKey="SessionID" Type="Cart" />
+      <Association Name="Session_Cart1" Member="Carts1" ThisKey="SessionID" OtherKey="SessionID" Type="Cart" />
+      <Association Name="User_Session" Member="User" ThisKey="UserID" OtherKey="UserID" Type="User" IsForeignKey="true" />
+      <Association Name="User_Session1" Member="User1" ThisKey="UserID" OtherKey="UserID" Type="User" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Users" Member="Users">
+    <Type Name="User">
+      <Column Name="UserID" Type="System.String" DbType="NVarChar(255) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Account" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="Password" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="NVarChar(255) NOT NULL" CanBeNull="false" />
+      <Column Name="RoleID" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="PhoneNumber" Type="System.String" DbType="NVarChar(20) NOT NULL" CanBeNull="false" />
+      <Column Name="Address" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="Email" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Association Name="User_Order" Member="Orders" ThisKey="UserID" OtherKey="UserID" Type="Order" />
+      <Association Name="User_Session" Member="Sessions" ThisKey="UserID" OtherKey="UserID" Type="Session" />
+      <Association Name="User_Session1" Member="Sessions1" ThisKey="UserID" OtherKey="UserID" Type="Session" />
+      <Association Name="Role_User" Member="Role" ThisKey="RoleID" OtherKey="RoleID" Type="Role" IsForeignKey="true" />
+      <Association Name="Role_User1" Member="Role1" ThisKey="RoleID" OtherKey="RoleID" Type="Role" IsForeignKey="true" />
+    </Type>
+  </Table>
+</Database>

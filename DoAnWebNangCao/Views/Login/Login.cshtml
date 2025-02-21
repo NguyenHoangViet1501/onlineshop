@@ -1,0 +1,154 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutKH.cshtml";  // Chỉ định layout cho Khách hàng
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Login | E-Shopper</title>
+    <link href="~/Eshopper/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Eshopper/css/font-awesome.min.css" rel="stylesheet">
+    <link href="~/Eshopper/css/prettyPhoto.css" rel="stylesheet">
+    <link href="~/Eshopper/css/price-range.css" rel="stylesheet">
+    <link href="~/Eshopper/css/animate.css" rel="stylesheet">
+    <link href="~/Eshopper/css/main.css" rel="stylesheet">
+    <link href="~/Eshopper/css/responsive.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->
+    <link rel="shortcut icon" href="~/Eshopper/images/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="~/Eshopper/images/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="~/Eshopper/images/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="~/Eshopper/images/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="~/Eshopper/images/ico/apple-touch-icon-57-precomposed.png">
+</head>
+<body>
+
+    <section id="form">
+        <!--form-->
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4 col-sm-offset-1">
+                    <div class="login-form">
+                        <!--login form-->
+                        <h2>Login to your account</h2>
+                        <form action="#" id="loginForm">
+                            <input type="text" id="account" placeholder="Account" />
+                            <input type="password" id="password" placeholder="PassWord" />
+                            <button type="submit" class="btn btn-default">Login</button>
+                        </form>
+                    </div><!--/login form-->
+                </div>
+                <div class="col-sm-1">
+                    <h2 class="or">OR</h2>
+                </div>
+                <div class="col-sm-4">
+                    <div class="signup-form">
+                        <!--sign up form-->
+                        <h2>New User Signup!</h2>
+                        <form action="#" id="registerForm">
+                            <input type="text" id="name" placeholder="Name" />
+                            <input type="text" id="accountRegister" placeholder="Account" />
+                            <input type="password" id="passwordRegister" placeholder="Password" />
+                            <input type="password" id="confirmPassword" placeholder="ConfirmPassword" />
+                            <input type="number" id="phoneNumber" placeholder="PhoneNumber" />
+                            <input type="text" id="address" placeholder="Address" />
+                            <input type="text" id="email" placeholder="Email" />
+                            <button type="submit" class="btn btn-default">Signup</button>
+                        </form>
+                    </div><!--/sign up form-->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="~/Eshopper/js/jquery.js"></script>
+    <script src="~/Eshopper/js/price-range.js"></script>
+    <script src="~/Eshopper/js/jquery.scrollUp.min.js"></script>
+    <script src="~/Eshopper/js/bootstrap.min.js"></script>
+    <script src="~/Eshopper/js/jquery.prettyPhoto.js"></script>
+    <script src="~/Eshopper/js/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    @section Scripts {
+        <script>
+        $(document).ready(function () {
+            $('#loginForm').submit(function (e) {
+                e.preventDefault();
+
+                var account = $('#account').val();
+                var password = $('#password').val();
+
+                $.ajax({
+                    url: '@Url.Action("Login", "Login")',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        account: account,
+                        password: password
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            $('#errorMessage').text(response.message).addClass('show');
+                            alert("Tài khoản hoặc mật khẩu không đúng");
+                            event.preventDefault();
+                        }
+                    },
+                    error: function () {
+                        $('#errorMessage').text('Đã có lỗi xảy ra, vui lòng thử lại sau.').addClass('show');
+                    }
+                });
+            });
+
+            $('#registerForm').submit(function (e) {
+                e.preventDefault();
+                var name = $('#name').val();
+                var account = $('#accountRegister').val();
+                var password = $('#passwordRegister').val();
+                var confirmpassword = $('#confirmPassword').val();
+                var phonenumber = $('#phoneNumber').val();
+                var address = $('#address').val();
+                var email = $('#email').val();
+
+                if (password !== confirmpassword) {
+                    alert("Mật khẩu không trùng nhau");
+                    return;
+                }
+                else {
+                    $.ajax({
+                        url: '@Url.Action("Register", "Login")',
+                        type: 'POST',
+                        dataType:'json',
+                        data: {
+                            account: account,
+                            password: password,
+                            name: name,
+                            phonenumber: phonenumber,
+                            address: address,
+                            email : email,
+
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.message);
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function () {
+                            $('#errorMessage').text('Đã có lỗi xảy ra, vui lòng thử lại sau.').addClass('show');
+                           
+                        }
+                    });
+                }
+            })
+        });
+        </script>
+    }
+</body>
+</html>

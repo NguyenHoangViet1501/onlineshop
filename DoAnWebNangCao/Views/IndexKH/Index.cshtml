@@ -1,0 +1,484 @@
+﻿@model DoAnWebNangCao.Models.ProductDetailsViewModel 
+@{
+    var userID = Session["UserID"] as string;
+    Layout = "~/Views/Shared/_LayoutKH.cshtml";  // Chỉ định layout cho Khách hàng
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            box-sizing: border-box; /* Đảm bảo kích thước của phần tử tính cả border và padding */
+        }
+        .product-image {
+            width: 600px;
+            height: 200px;
+            object-fit: contain;
+            object-position: center;
+        }
+        a {
+            color: black; /* Chỉ định màu cho liên kết */
+            text-decoration: none; /* Tắt gạch chân */
+        }
+        #searchBox {
+            position: relative;
+            width: 80%; /* Chiếm toàn bộ chiều rộng có sẵn */
+            max-width: 100%; /* Đảm bảo không bị giới hạn chiều rộng */
+        }
+
+        #searchBox input {
+                width: calc(100% - 40px); /* Chiếm toàn bộ chiều rộng của searchBox, trừ chỗ cho nút */
+                padding: 12px 20px; /* Padding cho không gian xung quanh chữ */
+                font-size: 16px; /* Kích thước chữ */
+                border: 2px solid #ddd; /* Đường viền nhạt cho ô input */
+                border-radius: 30px; /* Tạo hình tròn cho góc */
+                outline: none; /* Loại bỏ đường viền khi focus */
+                transition: all 0.3s ease; /* Hiệu ứng chuyển động khi focus */
+                padding-right: 40px; /* Tạo khoảng trống bên phải để nút tìm kiếm */
+        }
+
+        #searchBox input:hover,
+        #searchBox input:focus {
+                border-color: orange; /* Đổi màu viền khi hover hoặc focus */
+                box-shadow: 0 0 8px rgba(0, 128, 0, 0.5); /* Hiệu ứng shadow khi focus */
+        }
+
+        #searchBox input::placeholder {
+                color: #999; /* Màu chữ placeholder */
+                font-style: italic; /* Làm nghiêng chữ placeholder */
+        }
+
+        #searchBtn {
+            position: absolute;
+            right: 10px; /* Đặt nút tìm kiếm sát phải của ô input */
+            top: 50%;
+            transform: translateY(-50%); /* Căn giữa nút theo chiều dọc */
+            background-color: #4CAF50; /* Màu nền nút */
+            color: white; /* Màu chữ nút */
+            border: none; /* Loại bỏ đường viền */
+            border-radius: 50%; /* Làm cho nút thành hình tròn */
+            padding: 12px 15px; /* Kích thước của nút */
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Hiệu ứng khi hover */
+        }
+
+            #searchBtn:hover {
+                background-color: #45a049; /* Màu khi hover */
+            }
+
+            #searchBtn i {
+                font-size: 18px; /* Kích thước biểu tượng tìm kiếm */
+            }
+
+
+        #bbb{
+            margin-bottom:10px;
+        }
+        .resize-image {
+            width: 484px;
+            height: 441px;
+            object-fit: cover; /* Đảm bảo hình ảnh vừa với kích thước mà không bị biến dạng */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <section id="slider">
+            <!--slider-->
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div id="slider-carousel" class="carousel slide" data-ride="carousel">
+                            <ol class="carousel-indicators">
+                                <li data-target="#slider-carousel" data-slide-to="0" class=""></li>
+                                <li data-target="#slider-carousel" data-slide-to="1" class="active"></li>
+                                <li data-target="#slider-carousel" data-slide-to="2"></li>
+                            </ol>
+
+                            <div class="carousel-inner">
+                                <div class="item">
+                                    <div class="col-sm-6">
+                                        <h1><span>E</span>-SHOPPER</h1>
+                                        <h2>Điện thoại mới, trải nghiệm tuyệt vời.</h2>
+                                        <p>Điện thoại của bạn, sức mạnh của tương lai. Với công nghệ tiên tiến, thiết kế tinh tế và hiệu suất vượt trội, mỗi ngày sử dụng điện thoại trở thành một trải nghiệm đầy cảm hứng.</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <img src="~/Eshopper/pngtree-smartphone-shop-sale-logo-design-png-image_5069958.jpg" class="resize-image" />
+                                    </div>
+                                </div>
+                                <div class="item active">
+                                    <div class="col-sm-6">
+                                        <h1><span>E</span>-SHOPPER</h1>
+                                        <h2>Sản phẩm mới</h2>
+                                        <p>Chào mừng bạn đến với iPhone 16 Pro Max, sản phẩm điện thoại mạnh mẽ nhất từ Apple. Được trang bị công nghệ tiên tiến nhất, màn hình sắc nét và camera ấn tượng, iPhone 16 Pro Max sẽ giúp bạn ghi lại những khoảnh khắc tuyệt vời và xử lý mọi tác vụ mượt mà. Đưa trải nghiệm của bạn lên một tầm cao mới, nơi sự kết hợp giữa vẻ đẹp và sức mạnh tạo ra một sản phẩm hoàn hảo.</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <img src="~/Eshopper/9.jpg" class="resize-image" />
+
+                                    </div>
+                                </div>
+
+                                <div class="item">
+                                    <div class="col-sm-6">
+                                        <h1><span>E</span>-SHOPPER</h1>
+                                        <h2>Laptop mạnh mẽ, hiệu suất vượt trội.</h2>
+                                        <p>Laptop của bạn, sức mạnh của tương lai. Với hiệu năng vượt trội và thiết kế tinh tế, chiếc laptop này sẽ không chỉ đáp ứng mọi nhu cầu công việc mà còn là người bạn đồng hành lý tưởng trong từng bước phát triển sự nghiệp. Hãy chuẩn bị sẵn sàng cho mọi thử thách, mọi cơ hội với chiếc laptop mạnh mẽ và đáng tin cậy.</p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <img src="~/Eshopper/istockphoto-1421035376-612x612.jpg" class="resize-image" />
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <a href="#slider-carousel" class="left control-carousel hidden-xs" data-slide="prev">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a href="#slider-carousel" class="right control-carousel hidden-xs" data-slide="next">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </header>
+    <div id="body">
+        <section id="bbb">
+            <div class="container">
+                <div class="row">
+                    <!--header-bottom-->
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-8">
+                        <div class="pull-right" id="searchBox">
+                            <input type="text" id="searchInput" placeholder="Tìm kiếm">
+                            <button id="searchBtn" style="background-color: #FE980F " class="btn-search">
+                                <i class="fa fa-search"></i> <!-- Thêm biểu tượng tìm kiếm từ FontAwesome -->
+                            </button>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </section>
+        <section id="a">
+            <div class="container" id="ccc">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="left-sidebar">
+                            <h2>Danh mục</h2>
+                            <div class="panel-group category-products" id="accordian">
+                                <!--category-productsr-->
+
+
+                            </div><!--/category-products-->
+                            <div class="filter-section">
+                                <!-- Bộ lọc giá -->
+                                <div class="filter-item">
+                                    <label for="priceSort">Lọc theo khoảng giá:</label>
+                                    <select id="priceSort">
+                                        <option value="asc">Giá: Thấp đến cao</option>
+                                        <option value="desc">Giá: Cao đến thấp</option>
+                                    </select>
+                                </div>
+
+                                <!-- Bộ lọc khoảng giá -->
+                                <div class="filter-item">
+                                    <label for="minPrice">Từ giá:</label>
+                                    <input type="number" id="minPrice" placeholder="Điền giá">
+                                </div>
+                                <div class="filter-item">
+                                    <label for="maxPrice">Đến giá:</label>
+                                    <input type="number" id="maxPrice" placeholder="Điền giá    ">
+                                </div>
+
+                                <button id="applyFilterBtn" class="border-10">Lọc</button>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    <div class="col-sm-9 padding-right">
+                        <h2 class="title text-center">Sản phẩm</h2>
+                        <div class="features_items" id="productList">
+                            <!--features_items-->
+                            <!--Hiển thị danh sách sản phẩm-->
+                        </div><!--features_items-->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    @section Scripts
+    {
+        <script type="text/javascript">
+    $(document).ready(function () {
+        LoadProduct();
+        let userid = '@userID';
+        // Tìm kiếm sản phẩm
+        $('#searchBtn').on('click', function () {
+            var searchQuery = $('#searchInput').val().trim();
+            if (searchQuery !== '') {
+                searchProducts(searchQuery);
+            }
+            else {
+                LoadProduct();
+            }
+        });
+
+        // Lọc sản phẩm
+        $('#applyFilterBtn').on('click', function () {
+            var sortOrder = $('#priceSort').val();
+            var minPrice = $('#minPrice').val();
+            var maxPrice = $('#maxPrice').val();
+            filterProducts(sortOrder, minPrice, maxPrice);
+        });
+
+        // Hàm lọc sản phẩm
+        function filterProducts(sortOrder, minPrice, maxPrice) {
+            $('#productList').html('');
+            $.ajax({
+                url: '@Url.Action("FilterProducts", "IndexKH")',
+                type: 'GET',
+                dataType: 'json',
+                data: { sortOrder, minPrice: minPrice || null, maxPrice: maxPrice || null },
+                success: function (response) {
+                    if (response.data && response.data.length > 0) {
+                        var productsHTML = response.data.map(product => `
+                            <div class="col-sm-4">
+                                <div class="product-image-wrapper">
+                                    <div class="single-products">
+                                        <div class="productinfo text-center">
+                                            <img src="${product.Image_path}" alt="${product.Name}" class="product-image" />
+                                            <h2>${product.Price.toLocaleString('vi-VN') }VNĐ</h2>
+                                            <a href="/Product/ProductDetails/${product.id}">${product.Name}</a><br />
+                                            <a href="#" class="btn btn-default add-to-cart" data-id="${product.id}">
+                                                <i class="fa fa-shopping-cart"></i> Add to cart
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`).join('');
+                        $('#productList').html(productsHTML);
+                    } else {
+                        $('#productList').html('<p>No products found for your search.</p>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error during product filter:', error);
+                    $('#productList').html('<p>Error filtering products. Please try again.</p>');
+                }
+            });
+        }
+
+        // Tìm kiếm sản phẩm
+        function searchProducts(query) {
+            $('#productList').html('');
+            $.ajax({
+                url: '@Url.Action("SearchProducts", "IndexKH")',
+                type: 'GET',
+                dataType: 'json',
+                data: { query },
+                success: function (response) {
+                    if (response.data && response.data.length > 0) {
+                        var productsHTML = response.data.map(product => `
+                            <div class="col-sm-4">
+                                <div class="product-image-wrapper">
+                                    <div class="single-products">
+                                        <div class="productinfo text-center">
+                                            <img src="${product.Image_path}" alt="${product.Name}" class="product-image" />
+                                            <h2>${product.Price.toLocaleString('vi-VN') }VNĐ</h2>
+                                            <a href="/IndexKH/ProductDetails/${product.id}">${product.Name}</a><br />
+                                            <a href="#" class="btn btn-default add-to-cart" data-id="${product.id}">
+                                                <i class="fa fa-shopping-cart"></i> Add to cart
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`).join('');
+                        $('#productList').html(productsHTML);
+                    } else {
+                        $('#productList').html('<p>Không tìm thấy sản phẩm tương tự</p>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error during product search:', error);
+                    $('#productList').html('<p>Error searching products. Please try again.</p>');
+                }
+            });
+        }
+
+        // Lấy danh sách danh mục
+        $.ajax({
+            url: '@Url.Action("GetListDanhMucForSP", "DanhMuc")',
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                if (response.data && response.data.length > 0) {
+                    var tabsHTML = response.data.map(category => `
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordian" href="#category${category.CatalogueID}">
+                                        <span class="badge pull-right"><i class="fa fa-plus"></i></span>
+                                        ${category.CatalogueName}
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="category${category.CatalogueID}" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <ul id="listBrand${category.CatalogueID}"></ul>
+                                </div>
+                            </div>
+                        </div>`).join('');
+                    $('#accordian').html(tabsHTML);
+                } else {
+                    $('#accordian').html('<li>Không có danh mục nào</li>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log('Lỗi khi tải dữ liệu danh mục:', error);
+            }
+        });
+
+        // Khi click vào danh mục, tải nhãn hàng
+        $(document).on('click', '#accordian .panel .panel-heading a', function (e) {
+            e.preventDefault();
+            var catalogueId = $(this).attr('href').split('#')[1].replace('category', '');
+            loadBrand(catalogueId);
+        });
+
+        // Khi click vào nhãn hàng, tải sản phẩm
+        $(document).on('click', '#accordian .panel .panel-body ul li a', function (e) {
+            e.preventDefault();
+            var catalogueId = $(this).closest('.panel-collapse').attr('id').replace('category', '');
+            var brandId = $(this).attr('href').replace('#brand', '');
+            loadProducts(brandId, catalogueId);
+        });
+
+        // Hàm tải nhãn hàng
+        function loadBrand(catalogueId) {
+            $.ajax({
+                url: '@Url.Action("GetBrandByCatalogueId", "Hang")',
+                type: 'GET',
+                dataType: 'json',
+                data: { catalogueId },
+                success: function (response) {
+                    if (response.data && response.data.length > 0) {
+                        var brandsHTML = response.data.map(brand => `
+                            <li><a href="#brand${brand.BrandID}">${brand.BrandName}</a></li>`).join('');
+                        $('#listBrand' + catalogueId).html(brandsHTML);
+                    } else {
+                        $('#listBrand' + catalogueId).html('<p>Không có sản phẩm trong danh mục này.</p>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Lỗi khi tải dữ liệu nhãn hàng:', error);
+                }
+            });
+        }
+
+        // Hàm tải sản phẩm theo nhãn hàng và danh mục
+        function loadProducts(brandId, catalogueId) {
+            $('#productList').html('');
+            $.ajax({
+                url: '@Url.Action("GetProductsByBrandIDandCatalogueID", "SanPham")',
+                type: 'GET',
+                dataType: 'json',
+                data: { BrandID: brandId, CatalogueID: catalogueId },
+                success: function (response) {
+                    if (response.data && response.data.length > 0) {
+                        var productsHTML = response.data.map(product => `
+                            <div class="col-sm-4">
+                                <div class="product-image-wrapper">
+                                    <div class="single-products">
+                                        <div class="productinfo text-center">
+                                            <img src="${product.Image_path}" alt="${product.Name}" class="product-image" />
+                                            <h2>${product.Price.toLocaleString('vi-VN') }VNĐ</h2>
+                                            <a href="/IndexKH/ProductDetails/${product.ProductID}">${product.Name}</a><br />
+                                            <a href="#" class="btn btn-default add-to-cart" data-id="${product.ProductID}">
+                                                <i class="fa fa-shopping-cart"></i> Add to cart
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`).join('');
+                        $('#productList').html(productsHTML);
+                    } else {
+                        $('#productList').html('<p>Không có sản phẩm trong danh mục này.</p>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Lỗi khi tải dữ liệu sản phẩm:', error);
+                }
+            });
+        }
+
+        // Hàm tải tất cả sản phẩm
+        function LoadProduct() {
+            $.ajax({
+                url: '@Url.Action("GetAllProducts", "SanPham")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.data && response.data.length > 0) {
+                        var productsHTML = response.data.map(product => `
+                            <div class="col-sm-4">
+                                <div class="product-image-wrapper">
+                                    <div class="single-products">
+                                        <div class="productinfo text-center">
+                                            <img src="${product.image_path}" alt="${product.name}" class="product-image" />
+                                            <h2>${product.price.toLocaleString('vi-VN') }VNĐ</h2>
+                                            <a href="/IndexKH/ProductDetails/${product.id}">${product.name}</a><br />
+                                            <a href="#" class="btn btn-default add-to-cart" data-id="${product.id}">
+                                                <i class="fa fa-shopping-cart"></i> Add to cart
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`).join('');
+                        $('#productList').html(productsHTML);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error during loading products:', error);
+                }
+            });
+        }
+
+        $(document).on('click', '.add-to-cart', function (e) {
+            if (userid == '') {
+                alert("Vui lòng đăng nhâp");
+                return;
+            }
+            e.preventDefault();
+            const productId = $(this).data('id');
+            console.log(`Sản phẩm với ID: ${productId} được thêm vào giỏ hàng`);
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Cart")',
+                type: 'POST',
+                data: { id: productId },
+                success: function () {
+                    alert('Thêm vào giỏ hàng thành công');
+                },
+                error: function () {
+                    alert('Không thể thêm sản phẩm vào giỏ hàng.');
+                }
+            });
+        });
+
+    });
+        </script>
+
+    }
+</body>
+</html>
+

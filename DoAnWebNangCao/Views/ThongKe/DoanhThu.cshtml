@@ -1,0 +1,219 @@
+﻿
+<h2>Doanh Thu Theo Tháng</h2>  
+
+<style>
+    /* CSS cho phần Dropdown (Chọn tháng và năm) */
+    .custom-select {
+        width: 200px;
+        margin: 10px 0;
+        font-size: 16px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+        .custom-select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+    #doanhThuLabel {
+        font-size: 35.2px; /* Kích thước font của h3 trong Bootstrap */
+        font-weight: bold; /* Làm chữ đậm giống như h3 */
+        margin-top: 0; /* Loại bỏ margin trên của h3 */
+        margin-bottom: 0; /* Loại bỏ margin dưới của h3 */
+        display: inline; /* Giữ cho span hiển thị cùng dòng với h3 */
+        line-height: 1.2; /* Điều chỉnh chiều cao dòng nếu cần */
+    }
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>
+<div>
+    <select id="monthSelect" class="custom-select rounded-0">
+        <option value="1">Tháng 1</option>
+        <option value="2">Tháng 2</option>
+        <option value="3">Tháng 3</option>
+        <option value="4">Tháng 4</option>
+        <option value="5">Tháng 5</option>
+        <option value="6">Tháng 6</option>
+        <option value="7">Tháng 7</option>
+        <option value="8">Tháng 8</option>
+        <option value="9">Tháng 9</option>
+        <option value="10">Tháng 10</option>
+        <option value="11">Tháng 11</option>
+        <option value="12">Tháng 12</option>
+    </select>
+
+    <select id="yearSelect" class="custom-select rounded-0">
+        <option value="2022">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2022">2020</option>
+    </select>
+
+</div>
+<div class="small-box bg-info">
+    <div class="inner">
+        <span id="doanhThuLabel">Doanh Thu </span>
+        <h3 id="monthSelected" style="display: inline;">Tháng 1</h3>
+        <h3 id="doanhThu">0</h3> <!-- Tổng doanh thu sẽ hiển thị tại đây -->
+        <div class="icon">
+            <i class="ion ion-social-bitcoin"></i>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div>
+    <!-- Biểu đồ Bar -->
+    <div class="card card-success">
+        <div class="card-header">
+            <h3 class="card-title">Biểu đồ Doanh Thu Năm</h3>
+        </div>
+        <div class="card-body">
+            <div class="chart">
+                <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  $(document).ready(function () {
+
+    // Hàm để lấy doanh thu cho tháng đã chọn
+    function loadStatistics(month, year) {
+        $.ajax({
+            url: '@Url.Action("GetDoanhThu", "ThongKe")',  // Gọi API lấy doanh thu cho một tháng
+            type: 'GET',
+            data: { month: month, year: year },
+            success: function (data) {
+                console.log("Doanh thu tháng: ", data);
+                $('#doanhThu').text(data.totalRevenue.toLocaleString('vi-VN')); // Hiển thị tổng doanh thu
+            },
+            error: function (xhr, status, error) {
+                console.log('Doanh thu error: ', error);
+                alert("Lỗi ");
+            }
+        });
+    }
+
+    // Hàm để lấy doanh thu của tất cả các tháng trong năm và cập nhật biểu đồ
+    function loadChartData(year) {
+        $.ajax({
+            url: '@Url.Action("GetDoanhThuTheoNam", "ThongKe")',  // Gọi API lấy doanh thu theo năm
+            type: 'GET',
+            data: { year: year },
+            success: function (data) {
+                console.log(data); // Kiểm tra dữ liệu trả về từ API
+                if (data) {
+                    var months = [];
+                    var revenues = [];
+
+                    // Khởi tạo mảng doanh thu cho 12 tháng với giá trị mặc định là 0
+                    var monthlyData = new Array(12).fill(0); // Mảng doanh thu mặc định cho 12 tháng
+
+                    // Tạo danh sách tháng và doanh thu từ dữ liệu trả về
+                    $.each(data, function (index, item) {
+                        var monthIndex = item.Month - 1; // Lấy chỉ số tháng (0-11)
+                        monthlyData[monthIndex] = item.TotalRevenue;  // Gán doanh thu vào tháng tương ứng
+                    });
+
+                    // Cập nhật biểu đồ với doanh thu cho tất cả 12 tháng
+                    months = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                              "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+                    revenues = monthlyData;
+
+                    // Cập nhật biểu đồ
+                    updateChart(months, revenues);
+                } else {
+                    alert('Không có dữ liệu doanh thu cho năm này.');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log('Lỗi khi lấy dữ liệu doanh thu:', error);
+                alert('Lỗi khi tải dữ liệu doanh thu.');
+            }
+        });
+    }
+
+    // Cập nhật biểu đồ với dữ liệu mới
+    function updateChart(months, revenues) {
+        var barChartCanvas = $('#barChart').get(0).getContext('2d');
+
+        var barChartData = {
+            labels: months,  // Tên các tháng
+            datasets: [{
+                label: 'Doanh Thu',
+                data: revenues,  // Dữ liệu doanh thu
+                backgroundColor: 'rgba(60,141,188,0.9)',
+                borderColor: 'rgba(60,141,188,0.8)',
+                borderWidth: 1
+            }]
+        };
+
+        var barChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            datasetFill: false
+        };
+
+        // Khởi tạo hoặc cập nhật biểu đồ
+        new Chart(barChartCanvas, {
+            type: 'bar',
+            data: barChartData,
+            options: barChartOptions
+        });
+    }
+
+    // Khi chọn tháng hoặc năm, gọi lại hàm loadStatistics và loadChartData
+    $('#monthSelect, #yearSelect').change(function () {
+        var month = $('#monthSelect').val();
+        var year = $('#yearSelect').val();
+
+        // Cập nhật tháng đã chọn
+        var monthName = getMonthName(month); // Hàm để lấy tên tháng theo số
+        $('#monthSelected').text(monthName + " " + year); // Hiển thị tháng đã chọn
+
+        // Gọi lại hàm với tháng và năm được chọn
+        loadStatistics(month, year);  // Cập nhật doanh thu của tháng
+        loadChartData(year);  // Cập nhật biểu đồ cho cả năm
+    });
+
+    // Hàm để lấy tên tháng từ số tháng
+    function getMonthName(month) {
+        var months = [
+            "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+            "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+        ];
+        return months[month - 1]; // Sử dụng số tháng để lấy tên
+    }
+
+    // Khởi tạo trang với tháng và năm hiện tại
+    var currentMonth = new Date().getMonth() + 1; // getMonth() trả về tháng 0-11, cộng thêm 1 để ra tháng 1-12
+    var currentYear = new Date().getFullYear();
+
+    // Đặt giá trị tháng và năm hiện tại vào các ô select
+    $('#monthSelect').val(currentMonth);
+    $('#yearSelect').val(currentYear);
+
+    // Cập nhật tháng đã chọn lần đầu tiên
+    var currentMonthName = getMonthName(currentMonth);
+    $('#monthSelected').text(currentMonthName + " " + currentYear);
+
+    // Load dữ liệu lần đầu khi trang được tải
+    loadStatistics(currentMonth, currentYear);  // Doanh thu của tháng hiện tại
+    loadChartData(currentYear);  // Doanh thu cho cả năm
+
+  });
+</script>

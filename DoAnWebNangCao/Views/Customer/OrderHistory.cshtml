@@ -1,0 +1,192 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutKH.cshtml";  // Chỉ định layout cho Khách hàng
+    var userID = Session["UserId"] as string;
+}
+
+<style>
+    .table th, .table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 14px;
+        margin-top:0px!important;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .order-details-row {
+        background-color: #f9f9f9;
+        display: none;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+
+        <!-- Main Content -->
+        <main class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 content">
+            <div id="content-display">
+                <table class="table table-bordered">
+                    <thead style="background-color: #FE980F">
+                        <tr>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền (VND)</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-history-body">
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+@*<div class="container-fluid">
+    <div class="row">
+        @Html.Partial("~/Views/Shared/_Sidebar.cshtml")
+
+        <div class="container mt-4">
+
+            <table class="table table-hover" id="order-history">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền (VND)</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="order-history-body">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>*@
+
+
+<script>
+    $(document).ready(function () {
+        loadOrderHistory();
+
+        function loadOrderHistory() {
+            $.ajax({
+                url: '/Customer/GetOrderHistory',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        const orders = response.orders;
+                        const tbody = $('#order-history-body');
+                        tbody.empty();
+
+                        if (orders.length === 0) {
+                            tbody.append('<tr><td colspan="4">Không có đơn hàng nào.</td></tr>');
+                        } else {
+                            orders.forEach(order => {
+                                tbody.append(`
+                                        <tr>
+                                            <td>${formatDate(order.OrderDate)}</td>
+                                            <td>${order.TotalPrice.toLocaleString()} VND</td>
+                                            <td>${order.Status}</td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm" onclick="toggleOrderDetails('${order.OrderID}')">
+                                                    Xem chi tiết
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr id="details-${order.OrderID}" class="order-details-row">
+                                            <td colspan="4">
+                                                <table class="table table-bordered table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Tên sản phẩm</th>
+                                                            <th>Số lượng</th>
+                                                            <th>Giá (VND)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="details-body-${order.OrderID}">
+                                                        <!-- Chi tiết đơn hàng sẽ được tải qua AJAX -->
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    `);
+                            });
+                        }
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi tải lịch sử đơn hàng.');
+                }
+            });
+        }
+
+        // Hàm toggle hiển thị chi tiết đơn hàng
+        window.toggleOrderDetails = function (orderId) {
+            const detailsRow = $(`#details-${orderId}`);
+
+            if (detailsRow.is(':visible')) {
+                detailsRow.hide();
+            } else {
+                detailsRow.show();
+                if (!detailsRow.data('loaded')) {
+                    loadOrderDetails(orderId);
+                    detailsRow.data('loaded', true); // Đánh dấu đã tải chi tiết
+                }
+            }
+        };
+
+        function loadOrderDetails(orderId) {
+            $.ajax({
+                url: '/Customer/GetOrderDetails',
+                type: 'GET',
+                data: { orderId: orderId },
+                success: function (response) {
+                    if (response.success) {
+                        const details = response.orderDetails;
+                        const tbody = $(`#details-body-${orderId}`);
+                        tbody.empty();
+
+                        if (details.length === 0) {
+                            tbody.append('<tr><td colspan="3">Không có sản phẩm nào.</td></tr>');
+                        } else {
+                            details.forEach(item => {
+                                tbody.append(`
+                                        <tr>
+                                            <td>${item.Name}</td>
+                                            <td>${item.Quantity}</td>
+                                            <td>${item.Price.toLocaleString()} VND</td>
+                                        </tr>
+                                    `);
+                            });
+                        }
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi tải chi tiết đơn hàng.');
+                }
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString); // Parse chuỗi ISO 8601
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            return date.toLocaleDateString('vi-VN', options); 
+        }
+    });
+</script>

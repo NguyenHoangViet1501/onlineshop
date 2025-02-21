@@ -1,0 +1,97 @@
+﻿@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2> Chi tiết đơn hàng</h2>
+<style>
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+    /* Đảm bảo bảng chiếm 100% chiều rộng */
+    table {
+        width: 100%; /* Chiếm toàn bộ chiều rộng */
+        border-collapse: collapse; /* Tự động hợp nhất viền giữa các ô */
+    }
+
+    /* Định dạng cho các cột tiêu đề */
+    th {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd; /* Viền cho các ô tiêu đề */
+        background-color: #f9f9f9; /* Màu nền sáng cho tiêu đề */
+    }
+
+    /* Định dạng cho các ô dữ liệu */
+    td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd; /* Viền cho các ô dữ liệu */
+    }
+
+    /* Hiệu ứng hover khi người dùng di chuột qua hàng */
+    tr:hover {
+        background-color: #f1f1f1; /* Màu nền khi hover trên hàng */
+    }
+
+    /* Nếu tbody không có dữ liệu */
+    tbody.empty {
+        text-align: center;
+        font-style: italic;
+        color: #888;
+    }
+</style>
+
+
+
+<table id="catalogueTable" class="table">
+    <thead>
+        <tr>
+            <th>Tên sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Giá</th>
+        </tr>
+    </thead>
+    <tbody id="detailsOrderList">
+        <!-- Nội dung bảng sẽ được thêm bằng AJAX -->
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Lấy ID sản phẩm từ URL
+            var orderId = window.location.pathname.split('/').pop();
+            loadOrderDetails(orderId);
+        });
+        function loadOrderDetails(orderId) {
+            $.ajax({
+                url: '/Order/GetOrderDetails',
+                type: 'POST',
+                data: { orderId: orderId },
+                success: function (details) {
+                    const tbody = $('#detailsOrderList');
+                    tbody.empty();
+                    details.forEach(detail => {
+                        const row = `
+                                        <tr>
+                                            <td>${detail.ProductName}</td>
+                                            <td>${detail.Quantity}</td>
+                                            <td>${detail.Price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
+                                        </tr>`;
+                        tbody.append(row);
+                    });
+                    $('#OrderDetails').show();
+                },
+                error: function () {
+                    alert('Có lỗi xảy ra khi tải chi tiết đơn hàng.');
+                }
+            });
+        }
+
+    </script>
+}

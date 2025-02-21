@@ -1,0 +1,186 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutKH.cshtml";  // Chỉ định layout cho Khách hàng
+    var userID = Session["UserId"] as string;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Cart | E-Shopper</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        #checkout {
+            background-color: #FE980F;
+            float:right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <section id="cart_items">
+        <div class="container">
+            <div class="table-responsive cart_info">
+                <table class="table table-condensed" id="cartTable">
+                    <thead>
+                        <tr class="cart_menu">
+                            <td class="image">Sản phẩm</td>
+                            <td class="price">Giá</td>
+                            <td class="quantity">Số lượng</td>
+                            <td class="total">Tổng</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-right"><strong>Tổng tiền:</strong></td>
+                            <td id="grandTotal">0 VND</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <button id="checkout" style="margin-bottom:10px" class="btn  float-end">Đặt hàng</button>
+            </div>
+        </div>
+    </section> <!--/#cart_items-->
+    <script src="~/Eshopper/js/bootstrap.min.js"></script>
+    <script src="~/Eshopper/js/jquery.scrollUp.min.js"></script>
+    <script src="~/Eshopper/js/jquery.prettyPhoto.js"></script>
+    <script src="~/Eshopper/js/main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Nạp jQuery UI (bao gồm slider) -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        // Hàm tải giỏ hàng từ server
+        function loadCart() {
+            $.ajax({
+                url: '@Url.Action("GetCartItems", "Cart")',
+                type: 'POST',
+                dataType: 'json',
+                success: function (cartItems) {
+                    const cartTableBody = $('#cartTable tbody');
+                    cartTableBody.empty();
+                    let grandTotal = 0;
+
+                    $.each(cartItems, function (index, item) {
+                        const itemTotal = item.Price * item.Quantity;
+                        grandTotal += itemTotal;
+
+                        cartTableBody.append(`
+                            <tr>
+                                <td><a href="/IndexKH/ProductDetails/${item.ID}">${item.Name}</a><br/></td>
+                                <td class="cart_price">
+                                    ${item.Price.toLocaleString('vi-VN')} VND
+                                </td>
+                                <td><input type="number" class="form-control quantity"  data-id="${item.ID}" value="${item.Quantity}" min="1"></td>
+                                <td class="item-total-price">${itemTotal.toLocaleString('vi-VN')} VND </td>
+                                <td><button class="btn btn-danger removeItem" data-id="${item.ID}">Xóa</button></td>
+
+                            </tr>
+                        `);
+                    });
+
+                    updateGrandTotal(grandTotal);
+                },
+                error: function () {
+                    alert('Lỗi khi tải dữ liệu giỏ hàng.');
+                }
+            });
+        }
+
+        // Hàm cập nhật tổng tiền toàn bộ giỏ hàng
+        function updateGrandTotal(grandTotal) {
+            $('#grandTotal').text(grandTotal.toLocaleString('vi-VN') + ' VND');
+        }
+
+        // Thay đổi số lượng sản phẩm
+        $(document).on('change', '.quantity', function () {
+            const productId = $(this).data('id');
+            const quantity = $(this).val();
+            const row = $(this).closest('tr');
+
+            $.ajax({
+                url: '@Url.Action("UpdateCart", "Cart")',
+                type: 'POST',
+                data: { id: productId, quantity: quantity },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        const itemTotal = response.totalPrice;
+                        row.find('.item-total-price').text(itemTotal.toLocaleString('vi-VN') + ' VND');
+                        loadCart(); // Tải lại toàn bộ giỏ hàng để cập nhật tổng tiền
+                    } else {
+                        alert('Không thể cập nhật số lượng.');
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi cập nhật số lượng sản phẩm.');
+                }
+            });
+        });
+
+        // Xóa sản phẩm khỏi giỏ hàng
+        $(document).on('click', '.removeItem', function () {
+            const productId = $(this).data('id');
+
+            if (confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                $.ajax({
+                    url: '@Url.Action("RemoveFromCart", "Cart")',
+                    type: 'POST',
+                    data: { id: productId },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Sản phẩm đã được xóa khỏi giỏ hàng.');
+                            loadCart(); // Tải lại giỏ hàng sau khi xóa
+                        } else {
+                            alert('Lỗi khi xóa sản phẩm.');
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi khi xóa sản phẩm.');
+                    }
+                });
+            }
+        });
+
+        // Tải dữ liệu giỏ hàng ban đầu
+        loadCart();
+
+
+    $('#checkout').click(function () {
+        const userId = '@userID';
+
+        if (confirm('Bạn có chắc muốn đặt hàng?')) {
+            $.ajax({
+                url: '@Url.Action("Checkout", "Cart")',
+                type: 'POST',
+                data: { userId: userId },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        window.location.href = '/IndexKH/Index'; // Điều hướng đến trang danh sách đơn hàng
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi đặt hàng.');
+                }
+            });
+        }
+    });
+
+});
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,179 @@
+﻿<h2>Thêm Tài Khoản</h2>
+
+<form id="createUserForm">
+    <div class="card-body">
+        <!-- Cột 1 -->
+        <div class="form-group-short">
+            <div class="form-group">
+                <label for="Account">Tài khoản</label>
+                <input type="text" id="Account" name="Account" required />
+            </div>
+            <div class="form-group">
+                <label for="Name">Tên</label>
+                <input type="text" id="Name" name="Name" required />
+            </div>
+        </div>
+
+        <div class="form-group-short">
+            <div class="form-group">
+                <label for="Password">Mật khẩu</label>
+                <input type="password" id="Password" name="Password" required />
+            </div>
+            <div class="form-group">
+                <label for="Phone">Số điện thoại</label>
+                <input type="text" id="Phone" name="Phone" required />
+            </div>
+
+        </div>
+
+
+
+        <div class="form-group-short">
+            <div class="form-group">
+                <label for="Role">Vai trò</label>
+                <select id="Role" name="Role">
+                    <option value="Admin">Admin</option>
+                    <option value="Customer">Customer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="Address">Địa chỉ</label>
+                <input type="text" id="Address" name="Address" required />
+            </div>
+
+        </div>
+        <div class="form-group-short">
+            <div class="form-group">
+                <label for="Email">Email</label>
+                <input type="email" id="Email" name="Email" required />
+            </div>
+
+            <!-- Nút "Thêm Tài Khoản" chiếm toàn bộ chiều rộng -->
+            
+        </div>
+        <button type="button" onclick="submitForm()">Thêm Tài Khoản</button>
+    </div>
+</form>
+
+
+
+
+
+<script>
+    function submitForm() {
+        var formData = {
+            Account: $('#Account').val(),
+            password: $('#Password').val(),
+            Role: $('#Role').val(),
+            Name: $('#Name').val(),
+            Phone: $('#Phone').val(),
+            Address: $('#Address').val(),
+            Email: $('#Email').val()
+        };
+
+        $.ajax({
+            url: '@Url.Action("ThemTaiKhoan", "TaiKhoan")',
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                alert(response.message);
+                setTimeout(function () {
+                    location.replace('@Url.Action("Index","TaiKhoan")');
+                }, 2000);
+            },
+            error: function() {
+                alert('Có lỗi xảy ra khi thêm tài khoản.');
+            }
+        });
+    }
+</script>
+<style>
+    .form-group-short {
+        display: flex;
+        justify-content: space-between; /* Căn chỉnh các phần tử đều */
+        gap: 15px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+        /* Phong cách cho tiêu đề nhãn (label) */
+    #createUserForm label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+        margin-left: 40px;
+    }
+
+        /* Phong cách cho các input và select */
+        #createUserForm input[type="text"],
+        #createUserForm input[type="password"],
+        #createUserForm input[type="email"],
+        #createUserForm select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-left:40px;
+          
+        }
+
+            /* Tập trung vào ô nhập liệu */
+            #createUserForm input:focus,
+            #createUserForm select:focus {
+                outline: none;
+                border-color: #007BFF;
+                box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+            }
+
+        /* Phong cách cho nút bấm */
+        #createUserForm button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            #createUserForm button:hover {
+                background-color: #0056b3;
+            }
+
+        /* Căn chỉnh các nhóm (form-group) */
+        #createUserForm .form-group {
+            margin-bottom: 20px;
+            flex: 1 1 45%; /* Cấp cho mỗi cột chiếm 45% chiều rộng */
+        
+        }
+
+            /* Khoảng cách cho các div con */
+            #createUserForm .form-group > div {
+                margin-bottom: 10px;
+            }
+
+    /* Tùy chọn cải tiến giao diện */
+    .card-body {
+        padding: 0;
+    }
+
+    /* Điều chỉnh khi màn hình nhỏ */
+
+
+
+    h2 {
+        text-align: center; /* Căn giữa chữ */
+        color: #0069d9; /* Màu xanh dương */
+        font-size: 32px; /* Kích thước chữ lớn hơn */
+        font-weight: bold; /* In đậm */
+        margin-bottom: 20px; /* Khoảng cách dưới tiêu đề */
+        text-transform: uppercase; /* Chữ in hoa */
+    }
+</style>
